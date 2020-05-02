@@ -4,7 +4,8 @@
   "description": "A browser-based graphical interface for creating and running functional-style programs.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack --mode production"
   },
   "repository": {
     "type": "git",
@@ -15,5 +16,10 @@
   "bugs": {
     "url": "https://github.com/anoop901/GraphicalFunctionalProgramming/issues"
   },
-  "homepage": "https://github.com/anoop901/GraphicalFunctionalProgramming#readme"
+  "homepage": "https://github.com/anoop901/GraphicalFunctionalProgramming#readme",
+  "devDependencies": {
+    "html-webpack-plugin": "^4.3.0",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.11"
+  }
 }
