@@ -1,0 +1,19 @@
+{
+  "name": "graphical-functional-programming",
+  "version": "1.0.0",
+  "description": "A browser-based graphical interface for creating and running functional-style programs.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anoop901/GraphicalFunctionalProgramming.git"
+  },
+  "author": "Anoop Naravaram",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/anoop901/GraphicalFunctionalProgramming/issues"
+  },
+  "homepage": "https://github.com/anoop901/GraphicalFunctionalProgramming#readme"
+}
