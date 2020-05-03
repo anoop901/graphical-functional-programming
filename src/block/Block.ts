@@ -1,1 +1,3 @@
-export default abstract class Block {}
+export default abstract class Block {
+  abstract getSvg(): JSX.Element;
+}
