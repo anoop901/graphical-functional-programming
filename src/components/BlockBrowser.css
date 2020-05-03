@@ -1,7 +1,4 @@
 .BlockBrowser {
-  position: absolute;
-  left: 0;
   width: 300px;
-  height: 100%;
   overflow-y: scroll;
 }

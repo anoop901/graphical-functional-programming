@@ -1,7 +1,4 @@
 .CodeEditor {
-  position: absolute;
-  left: 300px;
-  right: 0;
-  height: 100%;
+  flex-grow: 1;
   overflow-y: scroll;
 }
