@@ -1,4 +1,4 @@
-import React = require("react");
+import * as React from 'react'
 import './BlockBrowser.css'
 
 export default class BlockBrowser extends React.Component {
