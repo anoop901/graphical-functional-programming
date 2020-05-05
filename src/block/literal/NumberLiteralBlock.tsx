@@ -31,9 +31,7 @@ export default class NumberLiteralBlock extends LiteralBlock {
         ].map(a => `${a.x},${a.y}`).join(" L ") + " z"}
       ></path>
       <text
-        fontFamily="sans-serif"
-        fontSize={20}
-        style={{fill: textColor}}
+        className="BlockText"
         textAnchor="middle"
         dominantBaseline="middle"
         x={textLength / 2 + 10}

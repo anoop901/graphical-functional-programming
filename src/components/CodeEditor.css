@@ -3,3 +3,9 @@
   flex-grow: 1;
   overflow-y: scroll;
 }
+
+.BlockText {
+  font-family: sans-serif;
+  font-size: 20px;
+  fill: #fff;
+}
