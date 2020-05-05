@@ -1,4 +1,5 @@
 .BlockBrowser {
+  background-color: #ddd;
   width: 300px;
   overflow-y: scroll;
 }
