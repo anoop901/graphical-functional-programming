@@ -1,9 +1,8 @@
-import * as React from 'react'
-import './BlockBrowser.css'
+import * as React from "react";
+import "./BlockBrowser.css";
 
 export default class BlockBrowser extends React.Component {
   render() {
-    return <div className="BlockBrowser">
-    </div>
+    return <div className="BlockBrowser"></div>;
   }
 }
