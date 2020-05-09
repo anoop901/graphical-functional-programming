@@ -1,4 +1,4 @@
-import Block from "./block/Block";
+import type Block from "./block/Block";
 import { List } from "immutable";
 
 export default class Program {

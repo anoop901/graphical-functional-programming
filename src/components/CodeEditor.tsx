@@ -1,6 +1,6 @@
 import * as React from "react";
 import "./CodeEditor.css";
-import Program from "../Program";
+import type Program from "../Program";
 
 interface Props {
   program: Program;
