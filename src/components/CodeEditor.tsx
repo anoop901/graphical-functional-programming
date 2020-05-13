@@ -42,6 +42,9 @@ function renderBlock(block: Block): JSX.Element {
   const fillColor = `hsl(${hue},80%,40%)`;
 
   const minimumTerminalSpacing = 50;
+  const notchHalfWidth = 5;
+  const notchHeight = 10;
+
   const blockHeight = 40;
   const blockWidth =
     minimumTerminalSpacing * Math.max(block.numInputs, block.numOutputs);
@@ -49,9 +52,15 @@ function renderBlock(block: Block): JSX.Element {
   const topEdgePoints = Array().concat(
     { x: 0, y: 0 },
     ...Array.from({ length: block.numInputs }).map((_, i) => [
-      { x: (blockWidth / (2 * block.numInputs)) * (2 * i + 1) - 5, y: 0 },
-      { x: (blockWidth / (2 * block.numInputs)) * (2 * i + 1), y: 10 },
-      { x: (blockWidth / (2 * block.numInputs)) * (2 * i + 1) + 5, y: 0 },
+      {
+        x: (blockWidth / (2 * block.numInputs)) * (2 * i + 1) - notchHalfWidth,
+        y: 0,
+      },
+      { x: (blockWidth / (2 * block.numInputs)) * (2 * i + 1), y: notchHeight },
+      {
+        x: (blockWidth / (2 * block.numInputs)) * (2 * i + 1) + notchHalfWidth,
+        y: 0,
+      },
     ]),
     { x: blockWidth, y: 0 }
   );
@@ -59,15 +68,15 @@ function renderBlock(block: Block): JSX.Element {
     { x: 0, y: blockHeight },
     ...Array.from({ length: block.numOutputs }).map((_, i) => [
       {
-        x: (blockWidth / (2 * block.numOutputs)) * (2 * i + 1) - 5,
+        x: (blockWidth / (2 * block.numOutputs)) * (2 * i + 1) - notchHalfWidth,
         y: blockHeight,
       },
       {
         x: (blockWidth / (2 * block.numOutputs)) * (2 * i + 1),
-        y: blockHeight + 10,
+        y: blockHeight + notchHeight,
       },
       {
-        x: (blockWidth / (2 * block.numOutputs)) * (2 * i + 1) + 5,
+        x: (blockWidth / (2 * block.numOutputs)) * (2 * i + 1) + notchHalfWidth,
         y: blockHeight,
       },
     ]),
@@ -83,6 +92,15 @@ function renderBlock(block: Block): JSX.Element {
         fill={fillColor}
         d={`M ${allPoints.map((p) => `${p.x},${p.y}`).join(" L ")} Z`}
       ></path>
+      <text
+        className="BlockText"
+        x={blockWidth / 2}
+        y={(blockHeight + notchHeight) / 2}
+        dominantBaseline="middle"
+        textAnchor="middle"
+      >
+        (placeholder)
+      </text>
     </g>
   );
 }
