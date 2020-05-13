@@ -1,3 +1,4 @@
 export default abstract class Block {
-  abstract getSvg(): JSX.Element;
+  abstract get numInputs(): number;
+  abstract get numOutputs(): number;
 }
