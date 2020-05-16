@@ -52,6 +52,7 @@ export default class IndexPage extends React.Component {
           y: 190,
         }
       ));
+      const blockId1 = newBlockId;
 
       ({ newBlockId, newProgramLayout } = newProgramLayout.addBlock(
         new DummyFunctionBlock(3, 2),
@@ -60,6 +61,7 @@ export default class IndexPage extends React.Component {
           y: 250,
         }
       ));
+      const blockId2 = newBlockId;
 
       ({ newBlockId, newProgramLayout } = newProgramLayout.addBlock(
         new DummyFunctionBlock(10, 8),
@@ -68,7 +70,7 @@ export default class IndexPage extends React.Component {
           y: 310,
         }
       ));
-      const blockId1 = newBlockId;
+      const blockId3 = newBlockId;
 
       ({ newBlockId, newProgramLayout } = newProgramLayout.addBlock(
         new DummyFunctionBlock(3, 9),
@@ -86,7 +88,13 @@ export default class IndexPage extends React.Component {
         }
       ));
 
-      newProgramLayout = newProgramLayout.removeBlock(blockId1);
+      newProgramLayout = newProgramLayout.removeBlock(blockId2);
+      newProgramLayout = newProgramLayout.addConnection({
+        sourceBlockId: blockId1,
+        sourceBlockOutputIndex: 1,
+        destinationBlockId: blockId3,
+        destinationBlockInputIndex: 3,
+      });
 
       return newProgramLayout;
     })();

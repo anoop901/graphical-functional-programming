@@ -31,6 +31,43 @@ export default class CodeEditor extends React.Component<Props> {
             );
           })
           .toList()}
+        {this.props.programLayout.program.connections
+          .map((connection, connectionId) => {
+            const programLayout = this.props.programLayout;
+            const sourceBlockLocation = programLayout.blockLocations.get(
+              connection.sourceBlockId
+            )!;
+            const destinationBlockLocation = programLayout.blockLocations.get(
+              connection.destinationBlockId
+            )!;
+            return (
+              <path
+                key={connectionId}
+                d={`M ${
+                  sourceBlockLocation.x +
+                  connection.sourceBlockOutputIndex * 50 +
+                  25
+                } ${sourceBlockLocation.y + 50} C ${
+                  sourceBlockLocation.x +
+                  connection.sourceBlockOutputIndex * 50 +
+                  25
+                } ${sourceBlockLocation.y + 150} ${
+                  destinationBlockLocation.x +
+                  connection.destinationBlockInputIndex * 50 +
+                  25
+                } ${destinationBlockLocation.y + 10 - 100} ${
+                  destinationBlockLocation.x +
+                  connection.destinationBlockInputIndex * 50 +
+                  25
+                } ${destinationBlockLocation.y + 10}`}
+                stroke="black"
+                strokeWidth={2}
+                strokeLinecap="round"
+                fill="none"
+              ></path>
+            );
+          })
+          .toList()}
       </svg>
     );
   }
