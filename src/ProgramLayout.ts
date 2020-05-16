@@ -16,12 +16,18 @@ export default class ProgramLayout {
     return new ProgramLayout();
   }
 
-  addBlock(block: Block, position: { x: number; y: number }): ProgramLayout {
+  addBlock(
+    block: Block,
+    position: { x: number; y: number }
+  ): { newBlockId: BlockId; newProgramLayout: ProgramLayout } {
     const { newProgram, newBlockId } = this.program.addBlock(block);
-    return new ProgramLayout(
-      newProgram,
-      this.blockLocations.set(newBlockId, position)
-    );
+    return {
+      newBlockId,
+      newProgramLayout: new ProgramLayout(
+        newProgram,
+        this.blockLocations.set(newBlockId, position)
+      ),
+    };
   }
 
   removeBlock(blockId: BlockId): ProgramLayout {
