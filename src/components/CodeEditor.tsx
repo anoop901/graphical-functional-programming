@@ -3,74 +3,69 @@ import "./CodeEditor.css";
 import ProgramLayout from "../ProgramLayout";
 import Block from "../block/Block";
 
-interface Props {
+export default function CodeEditor({
+  programLayout,
+}: {
   programLayout: ProgramLayout;
-}
-
-export default class CodeEditor extends React.Component<Props> {
-  render() {
-    return (
-      <svg className="CodeEditor">
-        {this.props.programLayout.program.blocks
-          .map((block, blockId) => {
-            const blockPosition = this.props.programLayout.blockLocations.get(
-              blockId
+}) {
+  return (
+    <svg className="CodeEditor">
+      {programLayout.program.blocks
+        .map((block, blockId) => {
+          const blockPosition = programLayout.blockLocations.get(blockId);
+          if (blockPosition === undefined) {
+            throw new Error(
+              `ProgramLayout had no position for block id ${blockId}`
             );
-            if (blockPosition === undefined) {
-              throw new Error(
-                `ProgramLayout had no position for block id ${blockId}`
-              );
-            }
-            return (
-              <g
-                key={blockId}
-                transform={`translate(${blockPosition.x} ${blockPosition.y})`}
-              >
-                {renderBlock(block)}
-              </g>
-            );
-          })
-          .toList()}
-        {this.props.programLayout.program.connections
-          .map((connection, connectionId) => {
-            const programLayout = this.props.programLayout;
-            const sourceBlockLocation = programLayout.blockLocations.get(
-              connection.sourceBlockId
-            )!;
-            const destinationBlockLocation = programLayout.blockLocations.get(
-              connection.destinationBlockId
-            )!;
-            return (
-              <path
-                key={connectionId}
-                d={`M ${
-                  sourceBlockLocation.x +
-                  connection.sourceBlockOutputIndex * 50 +
-                  25
-                } ${sourceBlockLocation.y + 50} C ${
-                  sourceBlockLocation.x +
-                  connection.sourceBlockOutputIndex * 50 +
-                  25
-                } ${sourceBlockLocation.y + 150} ${
-                  destinationBlockLocation.x +
-                  connection.destinationBlockInputIndex * 50 +
-                  25
-                } ${destinationBlockLocation.y + 10 - 100} ${
-                  destinationBlockLocation.x +
-                  connection.destinationBlockInputIndex * 50 +
-                  25
-                } ${destinationBlockLocation.y + 10}`}
-                stroke="black"
-                strokeWidth={2}
-                strokeLinecap="round"
-                fill="none"
-              ></path>
-            );
-          })
-          .toList()}
-      </svg>
-    );
-  }
+          }
+          return (
+            <g
+              key={blockId}
+              transform={`translate(${blockPosition.x} ${blockPosition.y})`}
+            >
+              {renderBlock(block)}
+            </g>
+          );
+        })
+        .toList()}
+      {programLayout.program.connections
+        .map((connection, connectionId) => {
+          const sourceBlockLocation = programLayout.blockLocations.get(
+            connection.sourceBlockId
+          )!;
+          const destinationBlockLocation = programLayout.blockLocations.get(
+            connection.destinationBlockId
+          )!;
+          return (
+            <path
+              key={connectionId}
+              d={`M ${
+                sourceBlockLocation.x +
+                connection.sourceBlockOutputIndex * 50 +
+                25
+              } ${sourceBlockLocation.y + 50} C ${
+                sourceBlockLocation.x +
+                connection.sourceBlockOutputIndex * 50 +
+                25
+              } ${sourceBlockLocation.y + 150} ${
+                destinationBlockLocation.x +
+                connection.destinationBlockInputIndex * 50 +
+                25
+              } ${destinationBlockLocation.y + 10 - 100} ${
+                destinationBlockLocation.x +
+                connection.destinationBlockInputIndex * 50 +
+                25
+              } ${destinationBlockLocation.y + 10}`}
+              stroke="black"
+              strokeWidth={2}
+              strokeLinecap="round"
+              fill="none"
+            ></path>
+          );
+        })
+        .toList()}
+    </svg>
+  );
 }
 
 function renderBlock(block: Block): JSX.Element {
