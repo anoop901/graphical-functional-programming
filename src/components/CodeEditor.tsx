@@ -1,7 +1,6 @@
 import * as React from "react";
 import "./CodeEditor.css";
 import ProgramLayout from "../ProgramLayout";
-import Block from "../block/Block";
 import BlockInEditor from "./BlockInEditor";
 import ConnectionInEditor from "./ConnectionInEditor";
 
@@ -26,8 +25,8 @@ export default function CodeEditor({
       ref={svgRef}
       className="CodeEditor"
       onMouseMove={(e) => {
-        if (dragState !== undefined) {
-          const mouseLocation = mouseEventToSvgPoint(e, svgRef.current!);
+        if (dragState !== undefined && svgRef.current !== null) {
+          const mouseLocation = mouseEventToSvgPoint(e, svgRef.current);
           setProgramLayout(
             programLayout.moveBlock(dragState.blockId, {
               x: mouseLocation.x - dragState.offset.x,
@@ -36,36 +35,38 @@ export default function CodeEditor({
           );
         }
       }}
-      onMouseUp={(e) => {
+      onMouseUp={() => {
         setDragState(undefined);
       }}
-      onMouseLeave={(e) => {
+      onMouseLeave={() => {
         setDragState(undefined);
       }}
     >
       {programLayout.program.blocks
         .map((block, blockId) => {
-          const blockPosition = programLayout.blockLocations.get(blockId)!;
+          const blockLocation = programLayout.getBlockLocation(blockId);
           return (
             <g
               key={blockId}
-              transform={`translate(${blockPosition.x} ${blockPosition.y})`}
+              transform={`translate(${blockLocation.x} ${blockLocation.y})`}
             >
               <BlockInEditor
                 block={block}
                 onMouseDown={(e) => {
-                  const mouseLocation = mouseEventToSvgPoint(
-                    e,
-                    svgRef.current!
-                  );
+                  if (svgRef.current !== null) {
+                    const mouseLocation = mouseEventToSvgPoint(
+                      e,
+                      svgRef.current
+                    );
 
-                  setDragState({
-                    blockId,
-                    offset: {
-                      x: mouseLocation.x - blockPosition.x,
-                      y: mouseLocation.y - blockPosition.y,
-                    },
-                  });
+                    setDragState({
+                      blockId,
+                      offset: {
+                        x: mouseLocation.x - blockLocation.x,
+                        y: mouseLocation.y - blockLocation.y,
+                      },
+                    });
+                  }
                 }}
               />
             </g>
@@ -75,7 +76,8 @@ export default function CodeEditor({
       {programLayout.program.connections
         .map((connection, connectionId) => (
           <ConnectionInEditor
-            connectionId={connectionId}
+            key={connectionId}
+            connection={connection}
             programLayout={programLayout}
           ></ConnectionInEditor>
         ))
@@ -95,8 +97,10 @@ function mouseEventToSvgPoint(
   const eventPoint = svgElem.createSVGPoint();
   eventPoint.x = event.clientX;
   eventPoint.y = event.clientY;
-  const svgPoint = eventPoint.matrixTransform(
-    svgElem.getScreenCTM()!.inverse()
-  );
+  const screenCTM = svgElem.getScreenCTM();
+  if (screenCTM === null) {
+    throw new Error("getScreenCTM() returned null");
+  }
+  const svgPoint = eventPoint.matrixTransform(screenCTM.inverse());
   return { x: svgPoint.x, y: svgPoint.y };
 }

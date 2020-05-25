@@ -7,7 +7,7 @@ import Connection from "./Connection";
 export default class ProgramLayout {
   private constructor(
     public readonly program: Program = Program.create(),
-    public readonly blockLocations: Map<
+    private readonly blockLocations: Map<
       BlockId,
       { x: number; y: number }
     > = Map()
@@ -36,6 +36,14 @@ export default class ProgramLayout {
       this.program.removeBlock(blockId),
       this.blockLocations.remove(blockId)
     );
+  }
+
+  getBlockLocation(blockId: BlockId): { x: number; y: number } {
+    const blockLocation = this.blockLocations.get(blockId);
+    if (blockLocation === undefined) {
+      throw new Error(`no location for block ${blockId}`);
+    }
+    return blockLocation;
   }
 
   moveBlock(

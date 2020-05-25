@@ -1,5 +1,5 @@
 import Block from "../block/Block";
-import React = require("react");
+import * as React from "react";
 
 export default function BlockInEditor({
   block,
@@ -20,7 +20,7 @@ export default function BlockInEditor({
   const blockWidth =
     minimumTerminalSpacing * Math.max(block.numInputs, block.numOutputs);
 
-  const topEdgePoints = Array().concat(
+  const topEdgePoints = ([] as { x: number; y: number }[]).concat(
     { x: 0, y: 0 },
     ...Array.from({ length: block.numInputs }).map((_, i) => [
       {
@@ -35,7 +35,7 @@ export default function BlockInEditor({
     ]),
     { x: blockWidth, y: 0 }
   );
-  const bottomEdgePoints = Array().concat(
+  const bottomEdgePoints = ([] as { x: number; y: number }[]).concat(
     { x: 0, y: blockHeight },
     ...Array.from({ length: block.numOutputs }).map((_, i) => [
       {
