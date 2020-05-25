@@ -3,7 +3,7 @@ import CodeEditor from "./CodeEditor";
 import BlockBrowser from "./BlockBrowser";
 import "./IndexPage.css";
 import ProgramLayout from "../ProgramLayout";
-import NumberLiteralBlock from "../block/literal/NumberLiteralBlock";
+import NumberLiteralBlock from "../block/NumberLiteralBlock";
 import DummyFunctionBlock from "../block/function/DummyFunctionBlock";
 import { BlockId } from "../Program";
 
