@@ -14,8 +14,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Typescript checks
-        run: npx tsc --noEmit
+      - name: Install dependencies
+        run: npm install
 
       - name: ESLint checks
         run: npx eslint '**/*.ts' '**/*.tsx'
