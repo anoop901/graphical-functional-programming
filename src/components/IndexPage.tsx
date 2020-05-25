@@ -8,7 +8,7 @@ import DummyFunctionBlock from "../block/function/DummyFunctionBlock";
 import { BlockId } from "../Program";
 
 export default function IndexPage() {
-  const programLayout = (() => {
+  const initProgramLayout = (() => {
     let newProgramLayout = ProgramLayout.create();
     let newBlockId: BlockId;
 
@@ -97,10 +97,15 @@ export default function IndexPage() {
 
     return newProgramLayout;
   })();
+
+  const [programLayout, setProgramLayout] = React.useState(initProgramLayout);
   return (
     <div className="IndexPage">
       <BlockBrowser />
-      <CodeEditor programLayout={programLayout} />
+      <CodeEditor
+        programLayout={programLayout}
+        setProgramLayout={setProgramLayout}
+      />
     </div>
   );
 }

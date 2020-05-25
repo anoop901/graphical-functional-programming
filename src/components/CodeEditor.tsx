@@ -3,13 +3,44 @@ import "./CodeEditor.css";
 import ProgramLayout from "../ProgramLayout";
 import Block from "../block/Block";
 
+interface DragState {
+  blockId: string;
+  offset: { x: number; y: number };
+}
+
 export default function CodeEditor({
   programLayout,
+  setProgramLayout,
 }: {
   programLayout: ProgramLayout;
+  setProgramLayout: (programLayout: ProgramLayout) => void;
 }) {
+  const [dragState, setDragState] = React.useState<DragState | undefined>(
+    undefined
+  );
+  const svgRef = React.useRef<SVGSVGElement>(null);
   return (
-    <svg className="CodeEditor">
+    <svg
+      ref={svgRef}
+      className="CodeEditor"
+      onMouseMove={(e) => {
+        if (dragState !== undefined) {
+          const mouseLocation = mouseEventToSvgPoint(e, svgRef.current!);
+          setProgramLayout(
+            programLayout.moveBlock(dragState.blockId, {
+              x: mouseLocation.x - dragState.offset.x,
+              y: mouseLocation.y - dragState.offset.y,
+            })
+          );
+        }
+      }}
+      onMouseUp={(e) => {
+        setDragState(undefined);
+      }}
+      onMouseLeave={(e) => {
+        setDragState(undefined);
+      }}
+    >
       {programLayout.program.blocks
         .map((block, blockId) => {
           const blockPosition = programLayout.blockLocations.get(blockId);
@@ -23,7 +54,23 @@ export default function CodeEditor({
               key={blockId}
               transform={`translate(${blockPosition.x} ${blockPosition.y})`}
             >
-              {renderBlock(block)}
+              <BlockInEditor
+                block={block}
+                onMouseDown={(e) => {
+                  const mouseLocation = mouseEventToSvgPoint(
+                    e,
+                    svgRef.current!
+                  );
+
+                  setDragState({
+                    blockId,
+                    offset: {
+                      x: mouseLocation.x - blockPosition.x,
+                      y: mouseLocation.y - blockPosition.y,
+                    },
+                  });
+                }}
+              />
             </g>
           );
         })
@@ -68,7 +115,13 @@ export default function CodeEditor({
   );
 }
 
-function renderBlock(block: Block): JSX.Element {
+function BlockInEditor({
+  block,
+  onMouseDown,
+}: {
+  block: Block;
+  onMouseDown?: (e: React.MouseEvent) => void;
+}): JSX.Element {
   const hue = block.numInputs > 0 && block.numOutputs > 0 ? 200 : 120;
   const strokeColor = `hsl(${hue},80%,30%)`;
   const fillColor = `hsl(${hue},80%,40%)`;
@@ -118,7 +171,7 @@ function renderBlock(block: Block): JSX.Element {
   const allPoints = [...topEdgePoints, ...[...bottomEdgePoints].reverse()];
 
   return (
-    <g>
+    <g onMouseDown={onMouseDown}>
       <path
         stroke={strokeColor}
         fill={fillColor}
@@ -135,4 +188,21 @@ function renderBlock(block: Block): JSX.Element {
       </text>
     </g>
   );
+}
+
+/**
+ * Returns the coordinates where the MouseEvent `event` occurred relative to the
+ * coordinate system of `svgElem`.
+ */
+function mouseEventToSvgPoint(
+  event: React.MouseEvent,
+  svgElem: SVGSVGElement
+): { x: number; y: number } {
+  const eventPoint = svgElem.createSVGPoint();
+  eventPoint.x = event.clientX;
+  eventPoint.y = event.clientY;
+  const svgPoint = eventPoint.matrixTransform(
+    svgElem.getScreenCTM()!.inverse()
+  );
+  return { x: svgPoint.x, y: svgPoint.y };
 }
