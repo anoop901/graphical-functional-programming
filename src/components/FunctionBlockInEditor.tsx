@@ -9,6 +9,10 @@ import {
 } from "../constants";
 import buildSvgPath from "../BuildSvgPath";
 
+function getBlockWidthExceptRoundPart(block: FunctionBlock) {
+  return minimumTerminalSpacing * Math.max(block.numInputs, block.numOutputs);
+}
+
 export default function FunctionBlockInEditor({
   block,
   onMouseDown,
@@ -18,12 +22,11 @@ export default function FunctionBlockInEditor({
   onMouseDown?: (e: React.MouseEvent) => void;
   location: { x: number; y: number };
 }): JSX.Element {
-  const hue = block.numInputs > 0 && block.numOutputs > 0 ? 200 : 120;
+  const hue = 200;
   const strokeColor = `hsl(${hue},80%,30%)`;
   const fillColor = `hsl(${hue},80%,40%)`;
 
-  const blockWidth =
-    minimumTerminalSpacing * Math.max(block.numInputs, block.numOutputs);
+  const blockWidthExceptRoundPart = getBlockWidthExceptRoundPart(block);
 
   const topEdgePoints = ([] as { x: number; y: number }[]).concat(
     { x: functionBlockRoundPartLength, y: 0 },
@@ -31,25 +34,25 @@ export default function FunctionBlockInEditor({
       {
         x:
           functionBlockRoundPartLength +
-          (blockWidth / (2 * block.numInputs)) * (2 * i + 1) -
+          (blockWidthExceptRoundPart / (2 * block.numInputs)) * (2 * i + 1) -
           notchHalfWidth,
         y: 0,
       },
       {
         x:
           functionBlockRoundPartLength +
-          (blockWidth / (2 * block.numInputs)) * (2 * i + 1),
+          (blockWidthExceptRoundPart / (2 * block.numInputs)) * (2 * i + 1),
         y: notchHeight,
       },
       {
         x:
           functionBlockRoundPartLength +
-          (blockWidth / (2 * block.numInputs)) * (2 * i + 1) +
+          (blockWidthExceptRoundPart / (2 * block.numInputs)) * (2 * i + 1) +
           notchHalfWidth,
         y: 0,
       },
     ]),
-    { x: functionBlockRoundPartLength + blockWidth, y: 0 }
+    { x: functionBlockRoundPartLength + blockWidthExceptRoundPart, y: 0 }
   );
   const bottomEdgePoints = ([] as { x: number; y: number }[])
     .concat(
@@ -58,25 +61,28 @@ export default function FunctionBlockInEditor({
         {
           x:
             functionBlockRoundPartLength +
-            (blockWidth / (2 * block.numOutputs)) * (2 * i + 1) -
+            (blockWidthExceptRoundPart / (2 * block.numOutputs)) * (2 * i + 1) -
             notchHalfWidth,
           y: blockHeight,
         },
         {
           x:
             functionBlockRoundPartLength +
-            (blockWidth / (2 * block.numOutputs)) * (2 * i + 1),
+            (blockWidthExceptRoundPart / (2 * block.numOutputs)) * (2 * i + 1),
           y: blockHeight + notchHeight,
         },
         {
           x:
             functionBlockRoundPartLength +
-            (blockWidth / (2 * block.numOutputs)) * (2 * i + 1) +
+            (blockWidthExceptRoundPart / (2 * block.numOutputs)) * (2 * i + 1) +
             notchHalfWidth,
           y: blockHeight,
         },
       ]),
-      { x: functionBlockRoundPartLength + blockWidth, y: blockHeight }
+      {
+        x: functionBlockRoundPartLength + blockWidthExceptRoundPart,
+        y: blockHeight,
+      }
     )
     .reverse();
   return (
@@ -97,13 +103,13 @@ export default function FunctionBlockInEditor({
             anchor1: {
               x:
                 functionBlockRoundPartLength +
-                blockWidth +
+                blockWidthExceptRoundPart +
                 (functionBlockRoundPartLength * 4) / 3,
               y: 0,
             },
             anchor2: {
               x:
-                blockWidth +
+                blockWidthExceptRoundPart +
                 functionBlockRoundPartLength +
                 (functionBlockRoundPartLength * 4) / 3,
               y: blockHeight,
@@ -131,7 +137,7 @@ export default function FunctionBlockInEditor({
       ></path>
       <text
         className="BlockText"
-        x={functionBlockRoundPartLength + blockWidth / 2}
+        x={functionBlockRoundPartLength + blockWidthExceptRoundPart / 2}
         y={(blockHeight + notchHeight) / 2}
         dominantBaseline="middle"
         textAnchor="middle"
@@ -140,4 +146,32 @@ export default function FunctionBlockInEditor({
       </text>
     </g>
   );
+}
+
+export function getFunctionBlockInputRelativeLocation(
+  block: FunctionBlock,
+  inputIndex: number
+): { x: number; y: number } {
+  const blockWidthExceptRoundPart = getBlockWidthExceptRoundPart(block);
+  return {
+    x:
+      functionBlockRoundPartLength +
+      (blockWidthExceptRoundPart / (2 * block.numInputs)) *
+        (2 * inputIndex + 1),
+    y: notchHeight,
+  };
+}
+
+export function getFunctionBlockOutputRelativeLocation(
+  block: FunctionBlock,
+  outputIndex: number
+): { x: number; y: number } {
+  const blockWidthExceptRoundPart = getBlockWidthExceptRoundPart(block);
+  return {
+    x:
+      functionBlockRoundPartLength +
+      (blockWidthExceptRoundPart / (2 * block.numOutputs)) *
+        (2 * outputIndex + 1),
+    y: blockHeight + notchHeight,
+  };
 }

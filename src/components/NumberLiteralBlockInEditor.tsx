@@ -3,6 +3,8 @@ import NumberLiteralBlock from "../block/NumberLiteralBlock";
 import { notchHalfWidth, notchHeight, blockHeight } from "../constants";
 import buildSvgPath from "../BuildSvgPath";
 
+const blockWidth = 50;
+
 export default function NumberLiteralBlockInEditor({
   block,
   onMouseDown,
@@ -15,8 +17,6 @@ export default function NumberLiteralBlockInEditor({
   const hue = 120;
   const strokeColor = `hsl(${hue},80%,30%)`;
   const fillColor = `hsl(${hue},80%,40%)`;
-
-  const blockWidth = 50;
 
   return (
     <g
@@ -56,4 +56,21 @@ export default function NumberLiteralBlockInEditor({
       </text>
     </g>
   );
+}
+
+export function getNumberLiteralBlockInputRelativeLocation(): {
+  x: number;
+  y: number;
+} {
+  throw new Error("number literal block has no inputs");
+}
+
+export function getNumberLiteralBlockOutputRelativeLocation(
+  block: NumberLiteralBlock,
+  outputIndex: number
+): { x: number; y: number } {
+  if (outputIndex != 0) {
+    throw new Error(`output index ${outputIndex} out of bounds`);
+  }
+  return { x: blockWidth / 2, y: blockHeight + notchHeight };
 }
