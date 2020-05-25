@@ -46,30 +46,24 @@ export default function CodeEditor({
         .map((block, blockId) => {
           const blockLocation = programLayout.getBlockLocation(blockId);
           return (
-            <g
+            <BlockInEditor
               key={blockId}
-              transform={`translate(${blockLocation.x} ${blockLocation.y})`}
-            >
-              <BlockInEditor
-                block={block}
-                onMouseDown={(e) => {
-                  if (svgRef.current !== null) {
-                    const mouseLocation = mouseEventToSvgPoint(
-                      e,
-                      svgRef.current
-                    );
+              block={block}
+              location={blockLocation}
+              onMouseDown={(e) => {
+                if (svgRef.current !== null) {
+                  const mouseLocation = mouseEventToSvgPoint(e, svgRef.current);
 
-                    setDragState({
-                      blockId,
-                      offset: {
-                        x: mouseLocation.x - blockLocation.x,
-                        y: mouseLocation.y - blockLocation.y,
-                      },
-                    });
-                  }
-                }}
-              />
-            </g>
+                  setDragState({
+                    blockId,
+                    offset: {
+                      x: mouseLocation.x - blockLocation.x,
+                      y: mouseLocation.y - blockLocation.y,
+                    },
+                  });
+                }
+              }}
+            />
           );
         })
         .toList()}

@@ -4,9 +4,11 @@ import * as React from "react";
 export default function BlockInEditor({
   block,
   onMouseDown,
+  location,
 }: {
   block: Block;
   onMouseDown?: (e: React.MouseEvent) => void;
+  location: { x: number; y: number };
 }): JSX.Element {
   const hue = block.numInputs > 0 && block.numOutputs > 0 ? 200 : 120;
   const strokeColor = `hsl(${hue},80%,30%)`;
@@ -57,7 +59,10 @@ export default function BlockInEditor({
   const allPoints = [...topEdgePoints, ...[...bottomEdgePoints].reverse()];
 
   return (
-    <g onMouseDown={onMouseDown}>
+    <g
+      onMouseDown={onMouseDown}
+      transform={`translate(${location.x} ${location.y})`}
+    >
       <path
         stroke={strokeColor}
         fill={fillColor}
