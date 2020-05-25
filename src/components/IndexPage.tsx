@@ -7,7 +7,7 @@ import NumberLiteralBlock from "../block/literal/NumberLiteralBlock";
 import DummyFunctionBlock from "../block/function/DummyFunctionBlock";
 import { BlockId } from "../Program";
 
-export default function IndexPage() {
+export default function IndexPage(): JSX.Element {
   const initProgramLayout = (() => {
     let newProgramLayout = ProgramLayout.create();
     let newBlockId: BlockId;

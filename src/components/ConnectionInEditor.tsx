@@ -1,25 +1,22 @@
 import ProgramLayout from "../ProgramLayout";
+import * as React from "react";
 import Connection from "../Connection";
-import { ConnectionId } from "../Program";
-import React = require("react");
 
 export default function ConnectionInEditor({
   programLayout,
-  connectionId,
+  connection,
 }: {
   programLayout: ProgramLayout;
-  connectionId: ConnectionId;
-}) {
-  const connection = programLayout.program.connections.get(connectionId)!;
-  const sourceBlockLocation = programLayout.blockLocations.get(
+  connection: Connection;
+}): JSX.Element {
+  const sourceBlockLocation = programLayout.getBlockLocation(
     connection.sourceBlockId
-  )!;
-  const destinationBlockLocation = programLayout.blockLocations.get(
+  );
+  const destinationBlockLocation = programLayout.getBlockLocation(
     connection.destinationBlockId
-  )!;
+  );
   return (
     <path
-      key={connectionId}
       d={`M ${
         sourceBlockLocation.x + connection.sourceBlockOutputIndex * 50 + 25
       } ${sourceBlockLocation.y + 50} C ${

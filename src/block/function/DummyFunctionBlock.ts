@@ -1,5 +1,4 @@
 import FunctionBlock from "./FunctionBlock";
-import React = require("react");
 
 export default class DummyFunctionBlock extends FunctionBlock {
   constructor(
