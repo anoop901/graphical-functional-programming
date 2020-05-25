@@ -35,6 +35,7 @@ export default function IndexPage(): JSX.Element {
         y: 70,
       }
     ));
+    const blockId5 = newBlockId;
 
     ({ newBlockId, newProgramLayout } = newProgramLayout.addBlock(
       new DummyFunctionBlock(2, 2),
@@ -43,6 +44,7 @@ export default function IndexPage(): JSX.Element {
         y: 130,
       }
     ));
+    const blockId4 = newBlockId;
 
     ({ newBlockId, newProgramLayout } = newProgramLayout.addBlock(
       new DummyFunctionBlock(2, 3),
@@ -93,6 +95,18 @@ export default function IndexPage(): JSX.Element {
       sourceBlockOutputIndex: 1,
       destinationBlockId: blockId3,
       destinationBlockInputIndex: 3,
+    });
+    newProgramLayout = newProgramLayout.addConnection({
+      sourceBlockId: blockId4,
+      sourceBlockOutputIndex: 1,
+      destinationBlockId: blockId1,
+      destinationBlockInputIndex: 1,
+    });
+    newProgramLayout = newProgramLayout.addConnection({
+      sourceBlockId: blockId5,
+      sourceBlockOutputIndex: 0,
+      destinationBlockId: blockId4,
+      destinationBlockInputIndex: 0,
     });
 
     return newProgramLayout;

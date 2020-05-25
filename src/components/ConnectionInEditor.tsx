@@ -1,6 +1,9 @@
 import ProgramLayout from "../ProgramLayout";
 import * as React from "react";
 import Connection from "../Connection";
+import { getBlockInputLocation, getBlockOutputLocation } from "./BlockInEditor";
+import buildSvgPath from "../BuildSvgPath";
+import { update } from "immutable";
 
 export default function ConnectionInEditor({
   programLayout,
@@ -9,27 +12,41 @@ export default function ConnectionInEditor({
   programLayout: ProgramLayout;
   connection: Connection;
 }): JSX.Element {
-  const sourceBlockLocation = programLayout.getBlockLocation(
-    connection.sourceBlockId
+  const sourceOutputLocation = getBlockOutputLocation(
+    connection.sourceBlockId,
+    connection.sourceBlockOutputIndex,
+    programLayout
   );
-  const destinationBlockLocation = programLayout.getBlockLocation(
-    connection.destinationBlockId
+  const destInputLocation = getBlockInputLocation(
+    connection.destinationBlockId,
+    connection.destinationBlockInputIndex,
+    programLayout
+  );
+
+  const sq = (x: number) => x * x;
+  const distance = Math.sqrt(
+    sq(destInputLocation.x - sourceOutputLocation.x) +
+      sq(destInputLocation.y - sourceOutputLocation.y)
   );
   return (
     <path
-      d={`M ${
-        sourceBlockLocation.x + connection.sourceBlockOutputIndex * 50 + 25
-      } ${sourceBlockLocation.y + 50} C ${
-        sourceBlockLocation.x + connection.sourceBlockOutputIndex * 50 + 25
-      } ${sourceBlockLocation.y + 150} ${
-        destinationBlockLocation.x +
-        connection.destinationBlockInputIndex * 50 +
-        25
-      } ${destinationBlockLocation.y + 10 - 100} ${
-        destinationBlockLocation.x +
-        connection.destinationBlockInputIndex * 50 +
-        25
-      } ${destinationBlockLocation.y + 10}`}
+      d={buildSvgPath([
+        { type: "move", to: sourceOutputLocation },
+        {
+          type: "curve",
+          anchor1: update(
+            sourceOutputLocation,
+            "y",
+            (y) => y + Math.min(100, distance)
+          ),
+          anchor2: update(
+            destInputLocation,
+            "y",
+            (y) => y - Math.min(100, distance)
+          ),
+          to: destInputLocation,
+        },
+      ])}
       stroke="black"
       strokeWidth={2}
       strokeLinecap="round"
