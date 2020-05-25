@@ -38,6 +38,16 @@ export default class ProgramLayout {
     );
   }
 
+  moveBlock(
+    blockId: string,
+    newBlockPosition: { x: number; y: number }
+  ): ProgramLayout {
+    return new ProgramLayout(
+      this.program,
+      this.blockLocations.set(blockId, newBlockPosition)
+    );
+  }
+
   addConnection(connection: Connection): ProgramLayout {
     return new ProgramLayout(
       this.program.addConnection(connection),
