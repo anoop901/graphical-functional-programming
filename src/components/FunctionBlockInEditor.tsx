@@ -88,12 +88,12 @@ export default function FunctionBlockInEditor({
         stroke={strokeColor}
         fill={fillColor}
         d={buildSvgPath([
-          { type: "move" as "move", to: topEdgePoints[0] },
+          { type: "move" as const, to: topEdgePoints[0] },
           ...topEdgePoints
             .slice(1)
-            .map((p) => ({ type: "line" as "line", to: p })),
+            .map((p) => ({ type: "line" as const, to: p })),
           {
-            type: "curve" as "curve",
+            type: "curve" as const,
             anchor1: {
               x:
                 functionBlockRoundPartLength +
@@ -110,9 +110,9 @@ export default function FunctionBlockInEditor({
             },
             to: bottomEdgePoints[0],
           },
-          ...bottomEdgePoints.map((p) => ({ type: "line" as "line", to: p })),
+          ...bottomEdgePoints.map((p) => ({ type: "line" as const, to: p })),
           {
-            type: "curve" as "curve",
+            type: "curve" as const,
             anchor1: {
               x:
                 functionBlockRoundPartLength -

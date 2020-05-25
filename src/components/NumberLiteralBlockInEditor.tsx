@@ -27,22 +27,22 @@ export default function NumberLiteralBlockInEditor({
         stroke={strokeColor}
         fill={fillColor}
         d={buildSvgPath([
-          { type: "move" as "move", to: { x: 0, y: 0 } },
-          { type: "line" as "line", to: { x: blockWidth, y: 0 } },
-          { type: "line" as "line", to: { x: blockWidth, y: blockHeight } },
+          { type: "move" as const, to: { x: 0, y: 0 } },
+          { type: "line" as const, to: { x: blockWidth, y: 0 } },
+          { type: "line" as const, to: { x: blockWidth, y: blockHeight } },
           {
-            type: "line" as "line",
+            type: "line" as const,
             to: { x: blockWidth / 2 + notchHalfWidth, y: blockHeight },
           },
           {
-            type: "line" as "line",
+            type: "line" as const,
             to: { x: blockWidth / 2, y: blockHeight + notchHeight },
           },
           {
-            type: "line" as "line",
+            type: "line" as const,
             to: { x: blockWidth / 2 - notchHalfWidth, y: blockHeight },
           },
-          { type: "line" as "line", to: { x: 0, y: blockHeight } },
+          { type: "line" as const, to: { x: 0, y: blockHeight } },
         ])}
       ></path>
       <text

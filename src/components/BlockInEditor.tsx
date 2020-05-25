@@ -13,6 +13,7 @@ export default function BlockInEditor({
   location: { x: number; y: number };
 }): JSX.Element {
   return block.accept({
+    // eslint-disable-next-line react/display-name
     visitFunctionBlock: (block) => (
       <FunctionBlockInEditor
         block={block}
@@ -20,6 +21,7 @@ export default function BlockInEditor({
         location={location}
       />
     ),
+    // eslint-disable-next-line react/display-name
     visitNumberLiteralBlock: (block) => (
       <NumberLiteralBlockInEditor
         block={block}
