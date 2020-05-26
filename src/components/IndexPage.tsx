@@ -4,113 +4,92 @@ import BlockBrowser from "./BlockBrowser";
 import "./IndexPage.css";
 import ProgramLayout from "../ProgramLayout";
 import NumberLiteralBlock from "../block/NumberLiteralBlock";
-import DummyFunctionBlock from "../block/function/DummyFunctionBlock";
-import { BlockId } from "../Program";
+import { Map } from "immutable";
+import AdditionBlock from "../block/function/AdditionBlock";
+import MultiplicationBlock from "../block/function/MultiplicationBlock";
+import NegationBlock from "../block/function/NegationBlock";
 
 export default function IndexPage(): JSX.Element {
-  const initProgramLayout = (() => {
-    let newProgramLayout = ProgramLayout.create();
-    let newBlockId: BlockId;
-
-    ({ newBlockId, newProgramLayout } = newProgramLayout.addBlock(
-      new NumberLiteralBlock(1),
-      {
-        x: 10,
-        y: 10,
-      }
-    ));
-
-    ({ newBlockId, newProgramLayout } = newProgramLayout.addBlock(
-      new NumberLiteralBlock(2000),
-      {
-        x: 110,
-        y: 10,
-      }
-    ));
-
-    ({ newBlockId, newProgramLayout } = newProgramLayout.addBlock(
-      new DummyFunctionBlock(3, 1),
-      {
-        x: 10,
-        y: 70,
-      }
-    ));
-    const blockId5 = newBlockId;
-
-    ({ newBlockId, newProgramLayout } = newProgramLayout.addBlock(
-      new DummyFunctionBlock(2, 2),
-      {
-        x: 10,
-        y: 130,
-      }
-    ));
-    const blockId4 = newBlockId;
-
-    ({ newBlockId, newProgramLayout } = newProgramLayout.addBlock(
-      new DummyFunctionBlock(2, 3),
-      {
-        x: 10,
-        y: 190,
-      }
-    ));
-    const blockId1 = newBlockId;
-
-    ({ newBlockId, newProgramLayout } = newProgramLayout.addBlock(
-      new DummyFunctionBlock(3, 2),
-      {
-        x: 10,
-        y: 250,
-      }
-    ));
-    const blockId2 = newBlockId;
-
-    ({ newBlockId, newProgramLayout } = newProgramLayout.addBlock(
-      new DummyFunctionBlock(10, 8),
-      {
-        x: 10,
-        y: 310,
-      }
-    ));
-    const blockId3 = newBlockId;
-
-    ({ newBlockId, newProgramLayout } = newProgramLayout.addBlock(
-      new DummyFunctionBlock(3, 9),
-      {
-        x: 10,
-        y: 370,
-      }
-    ));
-
-    ({ newBlockId, newProgramLayout } = newProgramLayout.addBlock(
-      new DummyFunctionBlock(3, 6),
-      {
-        x: 10,
-        y: 430,
-      }
-    ));
-
-    newProgramLayout = newProgramLayout.removeBlock(blockId2);
-    newProgramLayout = newProgramLayout.addConnection({
-      sourceBlockId: blockId1,
-      sourceBlockOutputIndex: 1,
-      destinationBlockId: blockId3,
-      destinationBlockInputIndex: 3,
-    });
-    newProgramLayout = newProgramLayout.addConnection({
-      sourceBlockId: blockId4,
-      sourceBlockOutputIndex: 1,
-      destinationBlockId: blockId1,
+  const { programLayout: initProgramLayoutWithoutConnections, blockIds } = [
+    {
+      name: "literal 3",
+      block: new NumberLiteralBlock(3),
+      location: { x: 200, y: 100 },
+    },
+    {
+      name: "literal 5",
+      block: new NumberLiteralBlock(5),
+      location: { x: 100, y: 100 },
+    },
+    {
+      name: "negation",
+      block: new NegationBlock(),
+      location: { x: 200, y: 200 },
+    },
+    {
+      name: "addition",
+      block: new AdditionBlock(),
+      location: { x: 100, y: 300 },
+    },
+    {
+      name: "literal 6",
+      block: new NumberLiteralBlock(6),
+      location: { x: 300, y: 200 },
+    },
+    {
+      name: "multiplication",
+      block: new MultiplicationBlock(),
+      location: { x: 200, y: 400 },
+    },
+  ].reduce(
+    ({ programLayout, blockIds }, { name, block, location }) => {
+      const { newProgramLayout, newBlockId } = programLayout.addBlock(
+        block,
+        location
+      );
+      return {
+        programLayout: newProgramLayout,
+        blockIds: blockIds.set(name, newBlockId),
+      };
+    },
+    {
+      programLayout: ProgramLayout.create(),
+      blockIds: Map<string, string>(),
+    }
+  );
+  /* eslint-disable @typescript-eslint/no-non-null-assertion */
+  const initProgramLayout = initProgramLayoutWithoutConnections
+    .addConnection({
+      sourceBlockId: blockIds.get("literal 3")!,
+      sourceBlockOutputIndex: 0,
+      destinationBlockId: blockIds.get("negation")!,
+      destinationBlockInputIndex: 0,
+    })
+    .addConnection({
+      sourceBlockId: blockIds.get("literal 5")!,
+      sourceBlockOutputIndex: 0,
+      destinationBlockId: blockIds.get("addition")!,
+      destinationBlockInputIndex: 0,
+    })
+    .addConnection({
+      sourceBlockId: blockIds.get("addition")!,
+      sourceBlockOutputIndex: 0,
+      destinationBlockId: blockIds.get("multiplication")!,
+      destinationBlockInputIndex: 0,
+    })
+    .addConnection({
+      sourceBlockId: blockIds.get("negation")!,
+      sourceBlockOutputIndex: 0,
+      destinationBlockId: blockIds.get("addition")!,
+      destinationBlockInputIndex: 1,
+    })
+    .addConnection({
+      sourceBlockId: blockIds.get("literal 6")!,
+      sourceBlockOutputIndex: 0,
+      destinationBlockId: blockIds.get("multiplication")!,
       destinationBlockInputIndex: 1,
     });
-    newProgramLayout = newProgramLayout.addConnection({
-      sourceBlockId: blockId5,
-      sourceBlockOutputIndex: 0,
-      destinationBlockId: blockId4,
-      destinationBlockInputIndex: 0,
-    });
-
-    return newProgramLayout;
-  })();
+  /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
   const [programLayout, setProgramLayout] = React.useState(initProgramLayout);
   return (
