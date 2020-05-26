@@ -47,24 +47,27 @@ export default function NumberLiteralBlockInEditor({
       <path
         stroke={strokeColor}
         fill={fillColor}
-        d={buildSvgPath([
-          { type: "move" as const, to: { x: 0, y: 0 } },
-          { type: "line" as const, to: { x: blockWidth, y: 0 } },
-          { type: "line" as const, to: { x: blockWidth, y: blockHeight } },
-          {
-            type: "line" as const,
-            to: { x: blockWidth / 2 + notchHalfWidth, y: blockHeight },
-          },
-          {
-            type: "line" as const,
-            to: { x: blockWidth / 2, y: blockHeight + notchHeight },
-          },
-          {
-            type: "line" as const,
-            to: { x: blockWidth / 2 - notchHalfWidth, y: blockHeight },
-          },
-          { type: "line" as const, to: { x: 0, y: blockHeight } },
-        ])}
+        d={buildSvgPath(
+          [
+            { type: "move" as const, to: { x: 0, y: 0 } },
+            { type: "line" as const, to: { x: blockWidth, y: 0 } },
+            { type: "line" as const, to: { x: blockWidth, y: blockHeight } },
+            {
+              type: "line" as const,
+              to: { x: blockWidth / 2 + notchHalfWidth, y: blockHeight },
+            },
+            {
+              type: "line" as const,
+              to: { x: blockWidth / 2, y: blockHeight + notchHeight },
+            },
+            {
+              type: "line" as const,
+              to: { x: blockWidth / 2 - notchHalfWidth, y: blockHeight },
+            },
+            { type: "line" as const, to: { x: 0, y: blockHeight } },
+          ],
+          true
+        )}
       ></path>
       <text
         className="BlockText"
