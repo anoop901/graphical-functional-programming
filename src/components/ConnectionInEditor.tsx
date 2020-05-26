@@ -4,6 +4,7 @@ import Connection from "../Connection";
 import { getBlockInputLocation, getBlockOutputLocation } from "./BlockInEditor";
 import buildSvgPath from "../BuildSvgPath";
 import { update } from "immutable";
+import { connectionBezierAnchorShrinkingDistanceThreshold } from "../constants";
 
 export default function ConnectionInEditor({
   programLayout,
@@ -37,12 +38,22 @@ export default function ConnectionInEditor({
           anchor1: update(
             sourceOutputLocation,
             "y",
-            (y) => y + Math.min(100, distance)
+            (y) =>
+              y +
+              Math.min(
+                connectionBezierAnchorShrinkingDistanceThreshold,
+                distance / 3
+              )
           ),
           anchor2: update(
             destInputLocation,
             "y",
-            (y) => y - Math.min(100, distance)
+            (y) =>
+              y -
+              Math.min(
+                connectionBezierAnchorShrinkingDistanceThreshold,
+                distance / 3
+              )
           ),
           to: destInputLocation,
         },
