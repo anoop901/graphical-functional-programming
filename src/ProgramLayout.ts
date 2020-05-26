@@ -31,6 +31,13 @@ export default class ProgramLayout {
     };
   }
 
+  setBlock(blockId: BlockId, block: Block): ProgramLayout {
+    return new ProgramLayout(
+      this.program.setBlock(blockId, block),
+      this.blockLocations
+    );
+  }
+
   removeBlock(blockId: BlockId): ProgramLayout {
     return new ProgramLayout(
       this.program.removeBlock(blockId),

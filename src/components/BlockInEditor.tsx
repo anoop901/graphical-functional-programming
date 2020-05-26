@@ -13,10 +13,12 @@ import { BlockId } from "../Program";
 
 export default function BlockInEditor({
   block,
+  setBlock,
   onMouseDown,
   location,
 }: {
   block: Block;
+  setBlock: (block: Block) => void;
   onMouseDown?: (e: React.MouseEvent) => void;
   location: { x: number; y: number };
 }): JSX.Element {
@@ -33,6 +35,7 @@ export default function BlockInEditor({
     visitNumberLiteralBlock: (block) => (
       <NumberLiteralBlockInEditor
         block={block}
+        setBlock={setBlock}
         onMouseDown={onMouseDown}
         location={location}
       />
