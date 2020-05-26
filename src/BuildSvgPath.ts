@@ -32,9 +32,12 @@ interface CurveSVGPathPart {
   };
 }
 
-export default function buildSvgPath(pathParts: SVGPathPart[]): string {
-  return pathParts
-    .map((pathPart) => {
+export default function buildSvgPath(
+  pathParts: SVGPathPart[],
+  closePath = false
+): string {
+  return [
+    ...pathParts.map((pathPart) => {
       if (pathPart.type == "move") {
         return `M${pathPart.to.x} ${pathPart.to.y}`;
       } else if (pathPart.type == "line") {
@@ -42,6 +45,7 @@ export default function buildSvgPath(pathParts: SVGPathPart[]): string {
       } else if (pathPart.type == "curve") {
         return `C${pathPart.anchor1.x} ${pathPart.anchor1.y} ${pathPart.anchor2.x} ${pathPart.anchor2.y} ${pathPart.to.x} ${pathPart.to.y}`;
       }
-    })
-    .join(" ");
+    }),
+    ...(closePath ? ["Z"] : []),
+  ].join(" ");
 }

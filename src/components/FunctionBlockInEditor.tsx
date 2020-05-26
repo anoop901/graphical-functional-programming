@@ -93,47 +93,50 @@ export default function FunctionBlockInEditor({
       <path
         stroke={strokeColor}
         fill={fillColor}
-        d={buildSvgPath([
-          { type: "move" as const, to: topEdgePoints[0] },
-          ...topEdgePoints
-            .slice(1)
-            .map((p) => ({ type: "line" as const, to: p })),
-          {
-            type: "curve" as const,
-            anchor1: {
-              x:
-                functionBlockRoundPartLength +
-                blockWidthExceptRoundPart +
-                (functionBlockRoundPartLength * 4) / 3,
-              y: 0,
+        d={buildSvgPath(
+          [
+            { type: "move" as const, to: topEdgePoints[0] },
+            ...topEdgePoints
+              .slice(1)
+              .map((p) => ({ type: "line" as const, to: p })),
+            {
+              type: "curve" as const,
+              anchor1: {
+                x:
+                  functionBlockRoundPartLength +
+                  blockWidthExceptRoundPart +
+                  (functionBlockRoundPartLength * 4) / 3,
+                y: 0,
+              },
+              anchor2: {
+                x:
+                  blockWidthExceptRoundPart +
+                  functionBlockRoundPartLength +
+                  (functionBlockRoundPartLength * 4) / 3,
+                y: blockHeight,
+              },
+              to: bottomEdgePoints[0],
             },
-            anchor2: {
-              x:
-                blockWidthExceptRoundPart +
-                functionBlockRoundPartLength +
-                (functionBlockRoundPartLength * 4) / 3,
-              y: blockHeight,
+            ...bottomEdgePoints.map((p) => ({ type: "line" as const, to: p })),
+            {
+              type: "curve" as const,
+              anchor1: {
+                x:
+                  functionBlockRoundPartLength -
+                  (functionBlockRoundPartLength * 4) / 3,
+                y: blockHeight,
+              },
+              anchor2: {
+                x:
+                  functionBlockRoundPartLength -
+                  (functionBlockRoundPartLength * 4) / 3,
+                y: 0,
+              },
+              to: topEdgePoints[0],
             },
-            to: bottomEdgePoints[0],
-          },
-          ...bottomEdgePoints.map((p) => ({ type: "line" as const, to: p })),
-          {
-            type: "curve" as const,
-            anchor1: {
-              x:
-                functionBlockRoundPartLength -
-                (functionBlockRoundPartLength * 4) / 3,
-              y: blockHeight,
-            },
-            anchor2: {
-              x:
-                functionBlockRoundPartLength -
-                (functionBlockRoundPartLength * 4) / 3,
-              y: 0,
-            },
-            to: topEdgePoints[0],
-          },
-        ])}
+          ],
+          true
+        )}
       ></path>
       <text
         className="BlockText"
