@@ -49,6 +49,9 @@ export default function CodeEditor({
             <BlockInEditor
               key={blockId}
               block={block}
+              setBlock={(block) => {
+                setProgramLayout(programLayout.setBlock(blockId, block));
+              }}
               location={blockLocation}
               onMouseDown={(e) => {
                 if (svgRef.current !== null) {

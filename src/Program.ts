@@ -27,6 +27,10 @@ export default class Program {
     };
   }
 
+  setBlock(blockId: BlockId, block: Block): Program {
+    return new Program(this.blocks.set(blockId, block), this.connections);
+  }
+
   removeBlock(blockId: BlockId): Program {
     return new Program(this.blocks.remove(blockId), this.connections);
   }
