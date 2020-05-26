@@ -142,7 +142,7 @@ export default function FunctionBlockInEditor({
         dominantBaseline="middle"
         textAnchor="middle"
       >
-        (placeholder)
+        {block.name}
       </text>
     </g>
   );
