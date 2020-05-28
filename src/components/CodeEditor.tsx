@@ -76,6 +76,9 @@ export default function CodeEditor({
             key={connectionId}
             connection={connection}
             programLayout={programLayout}
+            removeConnection={() => {
+              setProgramLayout(programLayout.removeConnection(connectionId));
+            }}
           ></ConnectionInEditor>
         ))
         .toList()}

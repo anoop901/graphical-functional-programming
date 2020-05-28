@@ -1,5 +1,5 @@
 import type Block from "./block/Block";
-import Program from "./Program";
+import Program, { ConnectionId } from "./Program";
 import type { BlockId } from "./Program";
 import { Map } from "immutable";
 import Connection from "./Connection";
@@ -66,6 +66,13 @@ export default class ProgramLayout {
   addConnection(connection: Connection): ProgramLayout {
     return new ProgramLayout(
       this.program.addConnection(connection),
+      this.blockLocations
+    );
+  }
+
+  removeConnection(connectionId: ConnectionId): ProgramLayout {
+    return new ProgramLayout(
+      this.program.removeConnection(connectionId),
       this.blockLocations
     );
   }

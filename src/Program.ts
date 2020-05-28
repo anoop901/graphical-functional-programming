@@ -71,4 +71,8 @@ export default class Program {
       this.connections.set(newConnectionId, connection)
     );
   }
+
+  removeConnection(connectionId: ConnectionId): Program {
+    return new Program(this.blocks, this.connections.remove(connectionId));
+  }
 }
