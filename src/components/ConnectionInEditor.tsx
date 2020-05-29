@@ -1,32 +1,18 @@
-import ProgramLayout from "../ProgramLayout";
 import * as React from "react";
-import Connection from "../Connection";
-import { getBlockInputLocation, getBlockOutputLocation } from "./BlockInEditor";
 import buildSvgPath from "../BuildSvgPath";
 import { update } from "immutable";
 import { connectionBezierAnchorShrinkingDistanceThreshold } from "../constants";
 import LinkOffIcon from "@material-ui/icons/LinkOff";
 
 export default function ConnectionInEditor({
-  connection,
-  programLayout,
   removeConnection,
+  sourceOutputLocation,
+  destInputLocation,
 }: {
-  connection: Connection;
-  programLayout: ProgramLayout;
   removeConnection: () => void;
+  sourceOutputLocation: { x: number; y: number };
+  destInputLocation: { x: number; y: number };
 }): JSX.Element {
-  const sourceOutputLocation = getBlockOutputLocation(
-    connection.sourceBlockId,
-    connection.sourceBlockOutputIndex,
-    programLayout
-  );
-  const destInputLocation = getBlockInputLocation(
-    connection.destinationBlockId,
-    connection.destinationBlockInputIndex,
-    programLayout
-  );
-
   const [hovering, setHovering] = React.useState<boolean>(false);
 
   const sq = (x: number) => x * x;

@@ -1,7 +1,10 @@
 import * as React from "react";
 import "./CodeEditor.css";
 import ProgramLayout from "../ProgramLayout";
-import BlockInEditor from "./BlockInEditor";
+import BlockInEditor, {
+  getBlockOutputLocation,
+  getBlockInputLocation,
+} from "./BlockInEditor";
 import ConnectionInEditor from "./ConnectionInEditor";
 
 interface DragState {
@@ -74,8 +77,16 @@ export default function CodeEditor({
         .map((connection, connectionId) => (
           <ConnectionInEditor
             key={connectionId}
-            connection={connection}
-            programLayout={programLayout}
+            sourceOutputLocation={getBlockOutputLocation(
+              connection.sourceBlockId,
+              connection.sourceBlockOutputIndex,
+              programLayout
+            )}
+            destInputLocation={getBlockInputLocation(
+              connection.destinationBlockId,
+              connection.destinationBlockInputIndex,
+              programLayout
+            )}
             removeConnection={() => {
               setProgramLayout(programLayout.removeConnection(connectionId));
             }}
