@@ -74,24 +74,38 @@ export default function CodeEditor({
         })
         .toList()}
       {programLayout.program.connections
-        .map((connection, connectionId) => (
-          <ConnectionInEditor
-            key={connectionId}
-            sourceOutputLocation={getBlockOutputLocation(
-              connection.sourceBlockId,
-              connection.sourceBlockOutputIndex,
-              programLayout
-            )}
-            destInputLocation={getBlockInputLocation(
-              connection.destinationBlockId,
-              connection.destinationBlockInputIndex,
-              programLayout
-            )}
-            removeConnection={() => {
-              setProgramLayout(programLayout.removeConnection(connectionId));
-            }}
-          ></ConnectionInEditor>
-        ))
+        .map((connection, connectionId) => {
+          const sourceBlock = programLayout.program.getBlock(
+            connection.sourceBlockId
+          );
+          const destBlock = programLayout.program.getBlock(
+            connection.destinationBlockId
+          );
+          const sourceBlockLocation = programLayout.getBlockLocation(
+            connection.sourceBlockId
+          );
+          const destBlockLocation = programLayout.getBlockLocation(
+            connection.destinationBlockId
+          );
+          return (
+            <ConnectionInEditor
+              key={connectionId}
+              sourceOutputLocation={getBlockOutputLocation(
+                sourceBlock,
+                connection.sourceBlockOutputIndex,
+                sourceBlockLocation
+              )}
+              destInputLocation={getBlockInputLocation(
+                destBlock,
+                connection.destinationBlockInputIndex,
+                destBlockLocation
+              )}
+              removeConnection={() => {
+                setProgramLayout(programLayout.removeConnection(connectionId));
+              }}
+            ></ConnectionInEditor>
+          );
+        })
         .toList()}
     </svg>
   );

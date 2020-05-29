@@ -6,8 +6,6 @@ import NumberLiteralBlockInEditor, {
 import FunctionBlockInEditor, {
   getFunctionBlockPartOffsets,
 } from "./FunctionBlockInEditor";
-import ProgramLayout from "../ProgramLayout";
-import { BlockId } from "../Program";
 
 export default function BlockInEditor({
   block,
@@ -54,15 +52,10 @@ function getBlockPartOffsets(block: Block): BlockPartOffsets {
 }
 
 export function getBlockInputLocation(
-  blockId: BlockId,
+  block: Block,
   inputIndex: number,
-  programLayout: ProgramLayout
+  blockLocation: { x: number; y: number }
 ): { x: number; y: number } {
-  const block = programLayout.program.blocks.get(blockId);
-  if (block === undefined) {
-    throw new Error(`block id ${blockId} doesn't exist in program`);
-  }
-  const blockLocation = programLayout.getBlockLocation(blockId);
   const offset = getBlockPartOffsets(block).getInputOffset(inputIndex);
   return {
     x: blockLocation.x + offset.dx,
@@ -71,15 +64,10 @@ export function getBlockInputLocation(
 }
 
 export function getBlockOutputLocation(
-  blockId: BlockId,
+  block: Block,
   outputIndex: number,
-  programLayout: ProgramLayout
+  blockLocation: { x: number; y: number }
 ): { x: number; y: number } {
-  const block = programLayout.program.blocks.get(blockId);
-  if (block === undefined) {
-    throw new Error(`block id ${blockId} doesn't exist in program`);
-  }
-  const blockLocation = programLayout.getBlockLocation(blockId);
   const offset = getBlockPartOffsets(block).getOutputOffset(outputIndex);
   return {
     x: blockLocation.x + offset.dx,
