@@ -3,6 +3,7 @@ import NumberLiteralBlock from "../block/NumberLiteralBlock";
 import { notchHalfWidth, notchHeight, blockHeight } from "../constants";
 import buildSvgPath from "../BuildSvgPath";
 import "./NumberLiteralBlockInEditor.css";
+import { BlockPartOffsets } from "./BlockInEditor";
 
 const blockWidth = 50;
 
@@ -102,20 +103,16 @@ export default function NumberLiteralBlockInEditor({
     </g>
   );
 }
-
-export function getNumberLiteralBlockInputRelativeLocation(): {
-  x: number;
-  y: number;
-} {
-  throw new Error("number literal block has no inputs");
-}
-
-export function getNumberLiteralBlockOutputRelativeLocation(
-  block: NumberLiteralBlock,
-  outputIndex: number
-): { x: number; y: number } {
-  if (outputIndex != 0) {
-    throw new Error(`output index ${outputIndex} out of bounds`);
-  }
-  return { x: blockWidth / 2, y: blockHeight + notchHeight };
+export function getNumberLiteralBlockPartOffsets(): BlockPartOffsets {
+  return {
+    getInputOffset(): { dx: number; dy: number } {
+      throw new Error("number literal block has no inputs");
+    },
+    getOutputOffset(outputIndex: number): { dx: number; dy: number } {
+      if (outputIndex != 0) {
+        throw new Error(`output index ${outputIndex} out of bounds`);
+      }
+      return { dx: blockWidth / 2, dy: blockHeight + notchHeight };
+    },
+  };
 }

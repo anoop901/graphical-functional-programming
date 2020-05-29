@@ -8,6 +8,7 @@ import {
   functionBlockRoundPartLength,
 } from "../constants";
 import buildSvgPath from "../BuildSvgPath";
+import { BlockPartOffsets } from "./BlockInEditor";
 
 function getBlockWidthExceptRoundPart(block: FunctionBlock) {
   return minimumTerminalSpacing * Math.max(block.numInputs, block.numOutputs);
@@ -151,30 +152,34 @@ export default function FunctionBlockInEditor({
   );
 }
 
-export function getFunctionBlockInputRelativeLocation(
-  block: FunctionBlock,
-  inputIndex: number
-): { x: number; y: number } {
+export function getFunctionBlockPartOffsets(
+  block: FunctionBlock
+): BlockPartOffsets {
   const blockWidthExceptRoundPart = getBlockWidthExceptRoundPart(block);
   return {
-    x:
-      functionBlockRoundPartLength +
-      (blockWidthExceptRoundPart / (2 * block.numInputs)) *
-        (2 * inputIndex + 1),
-    y: notchHeight,
-  };
-}
-
-export function getFunctionBlockOutputRelativeLocation(
-  block: FunctionBlock,
-  outputIndex: number
-): { x: number; y: number } {
-  const blockWidthExceptRoundPart = getBlockWidthExceptRoundPart(block);
-  return {
-    x:
-      functionBlockRoundPartLength +
-      (blockWidthExceptRoundPart / (2 * block.numOutputs)) *
-        (2 * outputIndex + 1),
-    y: blockHeight + notchHeight,
+    getInputOffset(inputIndex: number): { dx: number; dy: number } {
+      if (inputIndex < 0 || inputIndex >= block.numInputs) {
+        throw new Error(`input index ${inputIndex} out of bounds`);
+      }
+      return {
+        dx:
+          functionBlockRoundPartLength +
+          (blockWidthExceptRoundPart / (2 * block.numInputs)) *
+            (2 * inputIndex + 1),
+        dy: notchHeight,
+      };
+    },
+    getOutputOffset(outputIndex: number): { dx: number; dy: number } {
+      if (outputIndex < 0 || outputIndex >= block.numOutputs) {
+        throw new Error(`output index ${outputIndex} out of bounds`);
+      }
+      return {
+        dx:
+          functionBlockRoundPartLength +
+          (blockWidthExceptRoundPart / (2 * block.numOutputs)) *
+            (2 * outputIndex + 1),
+        dy: blockHeight + notchHeight,
+      };
+    },
   };
 }

@@ -1,12 +1,10 @@
 import Block from "../block/Block";
 import * as React from "react";
 import NumberLiteralBlockInEditor, {
-  getNumberLiteralBlockInputRelativeLocation,
-  getNumberLiteralBlockOutputRelativeLocation,
+  getNumberLiteralBlockPartOffsets,
 } from "./NumberLiteralBlockInEditor";
 import FunctionBlockInEditor, {
-  getFunctionBlockInputRelativeLocation,
-  getFunctionBlockOutputRelativeLocation,
+  getFunctionBlockPartOffsets,
 } from "./FunctionBlockInEditor";
 import ProgramLayout from "../ProgramLayout";
 import { BlockId } from "../Program";
@@ -43,6 +41,18 @@ export default function BlockInEditor({
   });
 }
 
+export interface BlockPartOffsets {
+  getInputOffset(inputIndex: number): { dx: number; dy: number };
+  getOutputOffset(outputIndex: number): { dx: number; dy: number };
+}
+
+function getBlockPartOffsets(block: Block): BlockPartOffsets {
+  return block.accept({
+    visitFunctionBlock: getFunctionBlockPartOffsets,
+    visitNumberLiteralBlock: getNumberLiteralBlockPartOffsets,
+  });
+}
+
 export function getBlockInputLocation(
   blockId: BlockId,
   inputIndex: number,
@@ -53,16 +63,10 @@ export function getBlockInputLocation(
     throw new Error(`block id ${blockId} doesn't exist in program`);
   }
   const blockLocation = programLayout.getBlockLocation(blockId);
-
-  const relativeLocation = block.accept({
-    visitFunctionBlock: (block) =>
-      getFunctionBlockInputRelativeLocation(block, inputIndex),
-    visitNumberLiteralBlock: () => getNumberLiteralBlockInputRelativeLocation(),
-  });
-
+  const offset = getBlockPartOffsets(block).getInputOffset(inputIndex);
   return {
-    x: blockLocation.x + relativeLocation.x,
-    y: blockLocation.y + relativeLocation.y,
+    x: blockLocation.x + offset.dx,
+    y: blockLocation.y + offset.dy,
   };
 }
 
@@ -76,16 +80,9 @@ export function getBlockOutputLocation(
     throw new Error(`block id ${blockId} doesn't exist in program`);
   }
   const blockLocation = programLayout.getBlockLocation(blockId);
-
-  const relativeLocation = block.accept({
-    visitFunctionBlock: (block) =>
-      getFunctionBlockOutputRelativeLocation(block, outputIndex),
-    visitNumberLiteralBlock: (block) =>
-      getNumberLiteralBlockOutputRelativeLocation(block, outputIndex),
-  });
-
+  const offset = getBlockPartOffsets(block).getOutputOffset(outputIndex);
   return {
-    x: blockLocation.x + relativeLocation.x,
-    y: blockLocation.y + relativeLocation.y,
+    x: blockLocation.x + offset.dx,
+    y: blockLocation.y + offset.dy,
   };
 }
