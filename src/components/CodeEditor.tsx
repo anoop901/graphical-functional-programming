@@ -107,6 +107,35 @@ export default function CodeEditor({
           );
         })
         .toList()}
+      {programLayout.program.blocks.entrySeq().flatMap(([blockId, block]) => {
+        const location = programLayout.getBlockLocation(blockId);
+        return [
+          ...Array.from({ length: block.numInputs }).map((_, i) => {
+            const inputLocation = getBlockInputLocation(block, i, location);
+            return (
+              <circle
+                key={`${blockId}.in.${i}`}
+                cx={inputLocation.x}
+                cy={inputLocation.y}
+                r={10}
+                fill="#0000"
+              />
+            );
+          }),
+          ...Array.from({ length: block.numOutputs }).map((_, i) => {
+            const outputLocation = getBlockOutputLocation(block, i, location);
+            return (
+              <circle
+                key={`${blockId}.out.${i}`}
+                cx={outputLocation.x}
+                cy={outputLocation.y}
+                r={10}
+                fill="#0000"
+              />
+            );
+          }),
+        ];
+      })}
     </svg>
   );
 }
