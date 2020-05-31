@@ -2,7 +2,7 @@ import * as React from "react";
 import buildSvgPath from "../BuildSvgPath";
 import { update } from "immutable";
 import { connectionBezierAnchorShrinkingDistanceThreshold } from "../constants";
-import LinkOffIcon from "@material-ui/icons/LinkOff";
+import ClearIcon from "@material-ui/icons/Clear";
 
 export default function ConnectionInEditor({
   removeConnection,
@@ -64,7 +64,7 @@ export default function ConnectionInEditor({
           width={24}
           height={24}
         >
-          <LinkOffIcon />
+          <ClearIcon htmlColor="#f00" />
         </foreignObject>
       ) : null}
       <path
