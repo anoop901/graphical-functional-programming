@@ -114,7 +114,7 @@ export function getNumberLiteralBlockOutputRelativeLocation(
   block: NumberLiteralBlock,
   outputIndex: number
 ): { x: number; y: number } {
-  if (outputIndex != 0) {
+  if (outputIndex !== 0) {
     throw new Error(`output index ${outputIndex} out of bounds`);
   }
   return { x: blockWidth / 2, y: blockHeight + notchHeight };
