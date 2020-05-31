@@ -8,10 +8,12 @@ export default function ConnectionInEditor({
   removeConnection,
   sourceOutputLocation,
   destInputLocation,
+  preview = false,
 }: {
   removeConnection: () => void;
   sourceOutputLocation: { x: number; y: number };
   destInputLocation: { x: number; y: number };
+  preview?: boolean;
 }): JSX.Element {
   const [hovering, setHovering] = React.useState<boolean>(false);
 
@@ -52,12 +54,12 @@ export default function ConnectionInEditor({
     <g>
       <path
         d={svgPath}
-        stroke={hovering ? "#0004" : "#000"}
+        stroke={hovering || preview ? "#0004" : "#000"}
         strokeWidth={2}
         strokeLinecap="round"
         fill="none"
       ></path>
-      {hovering ? (
+      {hovering && !preview ? (
         <foreignObject
           x={(sourceOutputLocation.x + destInputLocation.x) / 2 - 12}
           y={(sourceOutputLocation.y + destInputLocation.y) / 2 - 12}
