@@ -83,4 +83,14 @@ export default class Program {
   removeConnection(connectionId: ConnectionId): Program {
     return new Program(this.blocks, this.connections.remove(connectionId));
   }
+
+  blockInputIsUnconnected(blockId: BlockId, inputIndex: number): boolean {
+    return this.connections
+      .filter(
+        (connection) =>
+          connection.destinationBlockId === blockId &&
+          connection.destinationBlockInputIndex === inputIndex
+      )
+      .isEmpty();
+  }
 }

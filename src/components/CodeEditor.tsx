@@ -156,13 +156,19 @@ export default function CodeEditor({
               inputIndex,
               location
             );
+            const visible =
+              addingConnectionState.state === "DrawingNewConnectionState" &&
+              programLayout.program.blockInputIsUnconnected(
+                blockId,
+                inputIndex
+              );
             return (
               <circle
                 key={`${blockId}.in.${inputIndex}`}
                 cx={inputLocation.x}
                 cy={inputLocation.y}
-                r={10}
-                fill="#0000"
+                r={visible ? 20 : 10}
+                fill={visible ? "#0003" : "#0000"}
               />
             );
           }),
@@ -172,6 +178,9 @@ export default function CodeEditor({
               outputIndex,
               location
             );
+            const visible =
+              addingConnectionState.state === "HoveringOutputState" &&
+              addingConnectionState.blockId === blockId;
             return (
               <circle
                 onMouseEnter={() => {
@@ -207,13 +216,8 @@ export default function CodeEditor({
                 key={`${blockId}.out.${outputIndex}`}
                 cx={outputLocation.x}
                 cy={outputLocation.y}
-                r={10}
-                fill={
-                  addingConnectionState.state === "HoveringOutputState" &&
-                  addingConnectionState.blockId === blockId
-                    ? "#0003"
-                    : "#0000"
-                }
+                r={visible ? 20 : 10}
+                fill={visible ? "#0003" : "#0000"}
               />
             );
           }),
