@@ -109,7 +109,7 @@ export function getNumberLiteralBlockPartOffsets(): BlockPartOffsets {
       throw new Error("number literal block has no inputs");
     },
     getOutputOffset(outputIndex: number): { dx: number; dy: number } {
-      if (outputIndex != 0) {
+      if (outputIndex !== 0) {
         throw new Error(`output index ${outputIndex} out of bounds`);
       }
       return { dx: blockWidth / 2, dy: blockHeight + notchHeight };
