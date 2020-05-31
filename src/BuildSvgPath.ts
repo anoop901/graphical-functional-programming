@@ -38,11 +38,11 @@ export default function buildSvgPath(
 ): string {
   return [
     ...pathParts.map((pathPart) => {
-      if (pathPart.type == "move") {
+      if (pathPart.type === "move") {
         return `M${pathPart.to.x} ${pathPart.to.y}`;
-      } else if (pathPart.type == "line") {
+      } else if (pathPart.type === "line") {
         return `L${pathPart.to.x} ${pathPart.to.y}`;
-      } else if (pathPart.type == "curve") {
+      } else if (pathPart.type === "curve") {
         return `C${pathPart.anchor1.x} ${pathPart.anchor1.y} ${pathPart.anchor2.x} ${pathPart.anchor2.y} ${pathPart.to.x} ${pathPart.to.y}`;
       }
     }),
