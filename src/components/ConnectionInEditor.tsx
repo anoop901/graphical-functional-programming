@@ -51,7 +51,7 @@ export default function ConnectionInEditor({
     },
   ]);
   return (
-    <g>
+    <g pointerEvents={preview ? "none" : "visiblePainted"}>
       <path
         d={svgPath}
         stroke={hovering || preview ? "#0004" : "#000"}
