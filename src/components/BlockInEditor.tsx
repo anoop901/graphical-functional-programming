@@ -1,15 +1,11 @@
 import Block from "../block/Block";
 import * as React from "react";
 import NumberLiteralBlockInEditor, {
-  getNumberLiteralBlockInputRelativeLocation,
-  getNumberLiteralBlockOutputRelativeLocation,
+  getNumberLiteralBlockPartOffsets,
 } from "./NumberLiteralBlockInEditor";
 import FunctionBlockInEditor, {
-  getFunctionBlockInputRelativeLocation,
-  getFunctionBlockOutputRelativeLocation,
+  getFunctionBlockPartOffsets,
 } from "./FunctionBlockInEditor";
-import ProgramLayout from "../ProgramLayout";
-import { BlockId } from "../Program";
 
 export default function BlockInEditor({
   block,
@@ -43,49 +39,38 @@ export default function BlockInEditor({
   });
 }
 
-export function getBlockInputLocation(
-  blockId: BlockId,
-  inputIndex: number,
-  programLayout: ProgramLayout
-): { x: number; y: number } {
-  const block = programLayout.program.blocks.get(blockId);
-  if (block === undefined) {
-    throw new Error(`block id ${blockId} doesn't exist in program`);
-  }
-  const blockLocation = programLayout.getBlockLocation(blockId);
+export interface BlockPartOffsets {
+  getInputOffset(inputIndex: number): { dx: number; dy: number };
+  getOutputOffset(outputIndex: number): { dx: number; dy: number };
+}
 
-  const relativeLocation = block.accept({
-    visitFunctionBlock: (block) =>
-      getFunctionBlockInputRelativeLocation(block, inputIndex),
-    visitNumberLiteralBlock: () => getNumberLiteralBlockInputRelativeLocation(),
+function getBlockPartOffsets(block: Block): BlockPartOffsets {
+  return block.accept({
+    visitFunctionBlock: getFunctionBlockPartOffsets,
+    visitNumberLiteralBlock: getNumberLiteralBlockPartOffsets,
   });
+}
 
+export function getBlockInputLocation(
+  block: Block,
+  inputIndex: number,
+  blockLocation: { x: number; y: number }
+): { x: number; y: number } {
+  const offset = getBlockPartOffsets(block).getInputOffset(inputIndex);
   return {
-    x: blockLocation.x + relativeLocation.x,
-    y: blockLocation.y + relativeLocation.y,
+    x: blockLocation.x + offset.dx,
+    y: blockLocation.y + offset.dy,
   };
 }
 
 export function getBlockOutputLocation(
-  blockId: BlockId,
+  block: Block,
   outputIndex: number,
-  programLayout: ProgramLayout
+  blockLocation: { x: number; y: number }
 ): { x: number; y: number } {
-  const block = programLayout.program.blocks.get(blockId);
-  if (block === undefined) {
-    throw new Error(`block id ${blockId} doesn't exist in program`);
-  }
-  const blockLocation = programLayout.getBlockLocation(blockId);
-
-  const relativeLocation = block.accept({
-    visitFunctionBlock: (block) =>
-      getFunctionBlockOutputRelativeLocation(block, outputIndex),
-    visitNumberLiteralBlock: (block) =>
-      getNumberLiteralBlockOutputRelativeLocation(block, outputIndex),
-  });
-
+  const offset = getBlockPartOffsets(block).getOutputOffset(outputIndex);
   return {
-    x: blockLocation.x + relativeLocation.x,
-    y: blockLocation.y + relativeLocation.y,
+    x: blockLocation.x + offset.dx,
+    y: blockLocation.y + offset.dy,
   };
 }

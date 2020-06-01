@@ -27,6 +27,14 @@ export default class Program {
     };
   }
 
+  getBlock(blockId: BlockId): Block {
+    const block = this.blocks.get(blockId);
+    if (block === undefined) {
+      throw new Error(`no block with id ${blockId}`);
+    }
+    return block;
+  }
+
   setBlock(blockId: BlockId, block: Block): Program {
     return new Program(this.blocks.set(blockId, block), this.connections);
   }
@@ -70,5 +78,19 @@ export default class Program {
       this.blocks,
       this.connections.set(newConnectionId, connection)
     );
+  }
+
+  removeConnection(connectionId: ConnectionId): Program {
+    return new Program(this.blocks, this.connections.remove(connectionId));
+  }
+
+  blockInputIsUnconnected(blockId: BlockId, inputIndex: number): boolean {
+    return this.connections
+      .filter(
+        (connection) =>
+          connection.destinationBlockId === blockId &&
+          connection.destinationBlockInputIndex === inputIndex
+      )
+      .isEmpty();
   }
 }

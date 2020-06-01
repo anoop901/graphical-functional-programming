@@ -1,12 +1,46 @@
 import * as React from "react";
 import "./CodeEditor.css";
 import ProgramLayout from "../ProgramLayout";
-import BlockInEditor from "./BlockInEditor";
+import BlockInEditor, {
+  getBlockOutputLocation,
+  getBlockInputLocation,
+} from "./BlockInEditor";
 import ConnectionInEditor from "./ConnectionInEditor";
+import { BlockId } from "../Program";
+import { set } from "immutable";
+import Connection from "../Connection";
 
 interface DragState {
   blockId: string;
   offset: { x: number; y: number };
+}
+
+type AddingConnectionState =
+  | IdleState
+  | HoveringOutputState
+  | DrawingNewConnectionState
+  | SnappingNewConnectionState;
+
+interface IdleState {
+  state: "IdleState";
+}
+
+interface HoveringOutputState {
+  state: "HoveringOutputState";
+  blockId: BlockId;
+  outputIndex: number;
+}
+
+interface DrawingNewConnectionState {
+  state: "DrawingNewConnectionState";
+  blockId: BlockId;
+  outputIndex: number;
+  mouseLocation: { x: number; y: number };
+}
+
+interface SnappingNewConnectionState {
+  state: "SnappingNewConnectionState";
+  newConnection: Connection;
 }
 
 export default function CodeEditor({
@@ -19,6 +53,10 @@ export default function CodeEditor({
   const [dragState, setDragState] = React.useState<DragState | undefined>(
     undefined
   );
+  const [addingConnectionState, setAddingConnectionState] = React.useState<
+    AddingConnectionState
+  >({ state: "IdleState" });
+
   const svgRef = React.useRef<SVGSVGElement>(null);
   return (
     <svg
@@ -34,9 +72,29 @@ export default function CodeEditor({
             })
           );
         }
+        if (
+          addingConnectionState.state === "DrawingNewConnectionState" &&
+          svgRef.current !== null
+        ) {
+          const mouseLocation = mouseEventToSvgPoint(e, svgRef.current);
+          setAddingConnectionState(
+            set(addingConnectionState, "mouseLocation", mouseLocation)
+          );
+        }
       }}
       onMouseUp={() => {
         setDragState(undefined);
+        if (
+          addingConnectionState.state === "DrawingNewConnectionState" ||
+          addingConnectionState.state === "SnappingNewConnectionState"
+        ) {
+          setAddingConnectionState({ state: "IdleState" });
+          if (addingConnectionState.state === "SnappingNewConnectionState") {
+            setProgramLayout(
+              programLayout.addConnection(addingConnectionState.newConnection)
+            );
+          }
+        }
       }}
       onMouseLeave={() => {
         setDragState(undefined);
@@ -71,14 +129,200 @@ export default function CodeEditor({
         })
         .toList()}
       {programLayout.program.connections
-        .map((connection, connectionId) => (
-          <ConnectionInEditor
-            key={connectionId}
-            connection={connection}
-            programLayout={programLayout}
-          ></ConnectionInEditor>
-        ))
+        .map((connection, connectionId) => {
+          const sourceBlock = programLayout.program.getBlock(
+            connection.sourceBlockId
+          );
+          const destBlock = programLayout.program.getBlock(
+            connection.destinationBlockId
+          );
+          const sourceBlockLocation = programLayout.getBlockLocation(
+            connection.sourceBlockId
+          );
+          const destBlockLocation = programLayout.getBlockLocation(
+            connection.destinationBlockId
+          );
+          return (
+            <ConnectionInEditor
+              key={connectionId}
+              sourceOutputLocation={getBlockOutputLocation(
+                sourceBlock,
+                connection.sourceBlockOutputIndex,
+                sourceBlockLocation
+              )}
+              destInputLocation={getBlockInputLocation(
+                destBlock,
+                connection.destinationBlockInputIndex,
+                destBlockLocation
+              )}
+              removeConnection={() => {
+                setProgramLayout(programLayout.removeConnection(connectionId));
+              }}
+            ></ConnectionInEditor>
+          );
+        })
         .toList()}
+      {programLayout.program.blocks.entrySeq().flatMap(([blockId, block]) => {
+        const location = programLayout.getBlockLocation(blockId);
+        return [
+          ...Array.from({ length: block.numInputs }).map((_, inputIndex) => {
+            const inputLocation = getBlockInputLocation(
+              block,
+              inputIndex,
+              location
+            );
+            const visible =
+              (addingConnectionState.state === "DrawingNewConnectionState" ||
+                addingConnectionState.state === "SnappingNewConnectionState") &&
+              programLayout.program.blockInputIsUnconnected(
+                blockId,
+                inputIndex
+              );
+            const emphasized =
+              addingConnectionState.state === "SnappingNewConnectionState" &&
+              addingConnectionState.newConnection.destinationBlockId ===
+                blockId &&
+              addingConnectionState.newConnection.destinationBlockInputIndex ===
+                inputIndex;
+            return (
+              <circle
+                onMouseEnter={() => {
+                  if (
+                    addingConnectionState.state ===
+                      "DrawingNewConnectionState" &&
+                    programLayout.program.blockInputIsUnconnected(
+                      blockId,
+                      inputIndex
+                    )
+                  ) {
+                    setAddingConnectionState({
+                      state: "SnappingNewConnectionState",
+                      newConnection: {
+                        sourceBlockId: addingConnectionState.blockId,
+                        sourceBlockOutputIndex:
+                          addingConnectionState.outputIndex,
+                        destinationBlockId: blockId,
+                        destinationBlockInputIndex: inputIndex,
+                      },
+                    });
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (
+                    addingConnectionState.state ===
+                      "SnappingNewConnectionState" &&
+                    svgRef.current !== null
+                  ) {
+                    setAddingConnectionState({
+                      state: "DrawingNewConnectionState",
+                      blockId:
+                        addingConnectionState.newConnection.sourceBlockId,
+                      outputIndex:
+                        addingConnectionState.newConnection
+                          .sourceBlockOutputIndex,
+                      mouseLocation: mouseEventToSvgPoint(e, svgRef.current),
+                    });
+                  }
+                }}
+                key={`${blockId}.in.${inputIndex}`}
+                cx={inputLocation.x}
+                cy={inputLocation.y}
+                r={visible ? 20 : 10}
+                fill={visible ? (emphasized ? "#0006" : "#0003") : "#0000"}
+              />
+            );
+          }),
+          ...Array.from({ length: block.numOutputs }).map((_, outputIndex) => {
+            const outputLocation = getBlockOutputLocation(
+              block,
+              outputIndex,
+              location
+            );
+            const visible =
+              addingConnectionState.state === "HoveringOutputState" &&
+              addingConnectionState.blockId === blockId;
+            return (
+              <circle
+                onMouseEnter={() => {
+                  if (addingConnectionState.state === "IdleState") {
+                    setAddingConnectionState({
+                      state: "HoveringOutputState",
+                      blockId,
+                      outputIndex,
+                    });
+                  }
+                }}
+                onMouseLeave={() => {
+                  if (addingConnectionState.state === "HoveringOutputState") {
+                    setAddingConnectionState({ state: "IdleState" });
+                  }
+                }}
+                onMouseDown={(e) => {
+                  if (addingConnectionState.state === "HoveringOutputState") {
+                    if (svgRef.current !== null) {
+                      const mouseLocation = mouseEventToSvgPoint(
+                        e,
+                        svgRef.current
+                      );
+                      setAddingConnectionState({
+                        state: "DrawingNewConnectionState",
+                        blockId,
+                        outputIndex,
+                        mouseLocation,
+                      });
+                    }
+                  }
+                }}
+                key={`${blockId}.out.${outputIndex}`}
+                cx={outputLocation.x}
+                cy={outputLocation.y}
+                r={visible ? 20 : 10}
+                fill={visible ? "#0003" : "#0000"}
+              />
+            );
+          }),
+        ];
+      })}
+      {addingConnectionState.state === "DrawingNewConnectionState" ? (
+        <ConnectionInEditor
+          sourceOutputLocation={getBlockOutputLocation(
+            programLayout.program.getBlock(addingConnectionState.blockId),
+            addingConnectionState.outputIndex,
+            programLayout.getBlockLocation(addingConnectionState.blockId)
+          )}
+          destInputLocation={addingConnectionState.mouseLocation}
+          removeConnection={() => {
+            // do nothing
+          }}
+          preview
+        />
+      ) : null}
+      {addingConnectionState.state === "SnappingNewConnectionState" ? (
+        <ConnectionInEditor
+          sourceOutputLocation={getBlockOutputLocation(
+            programLayout.program.getBlock(
+              addingConnectionState.newConnection.sourceBlockId
+            ),
+            addingConnectionState.newConnection.sourceBlockOutputIndex,
+            programLayout.getBlockLocation(
+              addingConnectionState.newConnection.sourceBlockId
+            )
+          )}
+          destInputLocation={getBlockInputLocation(
+            programLayout.program.getBlock(
+              addingConnectionState.newConnection.destinationBlockId
+            ),
+            addingConnectionState.newConnection.destinationBlockInputIndex,
+            programLayout.getBlockLocation(
+              addingConnectionState.newConnection.destinationBlockId
+            )
+          )}
+          removeConnection={() => {
+            // do nothing
+          }}
+          preview
+        />
+      ) : null}
     </svg>
   );
 }
