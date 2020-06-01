@@ -188,7 +188,12 @@ export default function CodeEditor({
               <circle
                 onMouseEnter={() => {
                   if (
-                    addingConnectionState.state === "DrawingNewConnectionState"
+                    addingConnectionState.state ===
+                      "DrawingNewConnectionState" &&
+                    programLayout.program.blockInputIsUnconnected(
+                      blockId,
+                      inputIndex
+                    )
                   ) {
                     setAddingConnectionState({
                       state: "SnappingNewConnectionState",
