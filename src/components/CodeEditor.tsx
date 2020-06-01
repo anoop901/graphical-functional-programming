@@ -89,6 +89,11 @@ export default function CodeEditor({
           addingConnectionState.state === "SnappingNewConnectionState"
         ) {
           setAddingConnectionState({ state: "IdleState" });
+          if (addingConnectionState.state === "SnappingNewConnectionState") {
+            setProgramLayout(
+              programLayout.addConnection(addingConnectionState.newConnection)
+            );
+          }
         }
       }}
       onMouseLeave={() => {
