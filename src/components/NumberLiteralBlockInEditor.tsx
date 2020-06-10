@@ -71,7 +71,6 @@ export default function NumberLiteralBlockInEditor({
         )}
       ></path>
       <text
-        className="BlockText"
         x={blockWidth / 2}
         y={blockHeight / 2}
         dominantBaseline="middle"
@@ -82,14 +81,12 @@ export default function NumberLiteralBlockInEditor({
       {editing ? (
         <foreignObject x={0} y={0} width={blockWidth} height={blockHeight}>
           <form
-            className="edit-number-literal-block-form"
             onSubmit={(e) => {
               stopEditing();
               e.preventDefault();
             }}
           >
             <input
-              className="edit-number-literal-block-textfield"
               type="text"
               ref={inputRef}
               autoFocus
