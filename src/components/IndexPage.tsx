@@ -1,6 +1,5 @@
 import * as React from "react";
 import CodeEditor from "./CodeEditor";
-import BlockBrowser from "./BlockBrowser";
 import "./IndexPage.css";
 import ProgramLayout from "../ProgramLayout";
 import NumberLiteralBlock from "../block/NumberLiteralBlock";
@@ -94,7 +93,6 @@ export default function IndexPage(): JSX.Element {
   const [programLayout, setProgramLayout] = React.useState(initProgramLayout);
   return (
     <div className="IndexPage">
-      <BlockBrowser />
       <CodeEditor
         programLayout={programLayout}
         setProgramLayout={setProgramLayout}
