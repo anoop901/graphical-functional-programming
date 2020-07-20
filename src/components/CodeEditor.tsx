@@ -9,6 +9,11 @@ import ConnectionInEditor from "./ConnectionInEditor";
 import { BlockId } from "../Program";
 import { set } from "immutable";
 import Connection from "../Connection";
+import { Menu, MenuItem } from "@material-ui/core";
+import NumberLiteralBlock from "../block/NumberLiteralBlock";
+import AdditionBlock from "../block/function/AdditionBlock";
+import NegationBlock from "../block/function/NegationBlock";
+import MultiplicationBlock from "../block/function/MultiplicationBlock";
 
 interface DragState {
   blockId: string;
@@ -43,6 +48,10 @@ interface SnappingNewConnectionState {
   newConnection: Connection;
 }
 
+interface MenuState {
+  location: { x: number; y: number };
+}
+
 export default function CodeEditor({
   programLayout,
   setProgramLayout,
@@ -56,6 +65,13 @@ export default function CodeEditor({
   const [addingConnectionState, setAddingConnectionState] = React.useState<
     AddingConnectionState
   >({ state: "IdleState" });
+  const [menuState, setMenuState] = React.useState<MenuState | undefined>(
+    undefined
+  );
+
+  function closeMenu() {
+    setMenuState(undefined);
+  }
 
   const svgRef = React.useRef<SVGSVGElement>(null);
   return (
@@ -98,6 +114,17 @@ export default function CodeEditor({
       }}
       onMouseLeave={() => {
         setDragState(undefined);
+      }}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        if (svgRef.current !== null) {
+          setMenuState({
+            location: {
+              x: e.clientX - 2,
+              y: e.clientY - 4,
+            },
+          });
+        }
       }}
     >
       {programLayout.program.blocks
@@ -323,6 +350,79 @@ export default function CodeEditor({
           preview
         />
       ) : null}
+      <Menu
+        keepMounted
+        open={menuState !== undefined}
+        onClose={() => {
+          closeMenu();
+        }}
+        anchorReference="anchorPosition"
+        anchorPosition={
+          menuState !== undefined
+            ? {
+                top: menuState.location.y,
+                left: menuState.location.x,
+              }
+            : undefined
+        }
+      >
+        <MenuItem
+          onClick={() => {
+            if (menuState) {
+              setProgramLayout(
+                programLayout.addBlock(
+                  new NumberLiteralBlock(0),
+                  menuState.location
+                ).newProgramLayout
+              );
+            }
+            closeMenu();
+          }}
+        >
+          Create number literal block
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (menuState) {
+              setProgramLayout(
+                programLayout.addBlock(new AdditionBlock(), menuState.location)
+                  .newProgramLayout
+              );
+            }
+            closeMenu();
+          }}
+        >
+          Create addition function block
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (menuState) {
+              setProgramLayout(
+                programLayout.addBlock(new NegationBlock(), menuState.location)
+                  .newProgramLayout
+              );
+            }
+            closeMenu();
+          }}
+        >
+          Create negation function block
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (menuState) {
+              setProgramLayout(
+                programLayout.addBlock(
+                  new MultiplicationBlock(),
+                  menuState.location
+                ).newProgramLayout
+              );
+            }
+            closeMenu();
+          }}
+        >
+          Create multiplication block
+        </MenuItem>
+      </Menu>
     </svg>
   );
 }
