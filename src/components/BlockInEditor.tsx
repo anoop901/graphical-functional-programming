@@ -6,6 +6,7 @@ import NumberLiteralBlockInEditor, {
 import FunctionBlockInEditor, {
   getFunctionBlockPartOffsets,
 } from "./FunctionBlockInEditor";
+import "./BlockInEditor.css";
 
 export default function BlockInEditor({
   block,
@@ -18,25 +19,29 @@ export default function BlockInEditor({
   onMouseDown?: (e: React.MouseEvent) => void;
   location: { x: number; y: number };
 }): JSX.Element {
-  return block.accept({
-    // eslint-disable-next-line react/display-name
-    visitFunctionBlock: (block) => (
-      <FunctionBlockInEditor
-        block={block}
-        onMouseDown={onMouseDown}
-        location={location}
-      />
-    ),
-    // eslint-disable-next-line react/display-name
-    visitNumberLiteralBlock: (block) => (
-      <NumberLiteralBlockInEditor
-        block={block}
-        setBlock={setBlock}
-        onMouseDown={onMouseDown}
-        location={location}
-      />
-    ),
-  });
+  return (
+    <g className="BlockInEditor">
+      {block.accept({
+        // eslint-disable-next-line react/display-name
+        visitFunctionBlock: (block) => (
+          <FunctionBlockInEditor
+            block={block}
+            onMouseDown={onMouseDown}
+            location={location}
+          />
+        ),
+        // eslint-disable-next-line react/display-name
+        visitNumberLiteralBlock: (block) => (
+          <NumberLiteralBlockInEditor
+            block={block}
+            setBlock={setBlock}
+            onMouseDown={onMouseDown}
+            location={location}
+          />
+        ),
+      })}
+    </g>
+  );
 }
 
 export interface BlockPartOffsets {

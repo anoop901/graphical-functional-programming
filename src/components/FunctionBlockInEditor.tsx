@@ -140,7 +140,6 @@ export default function FunctionBlockInEditor({
         )}
       ></path>
       <text
-        className="BlockText"
         x={functionBlockRoundPartLength + blockWidthExceptRoundPart / 2}
         y={(blockHeight + notchHeight) / 2}
         dominantBaseline="middle"
