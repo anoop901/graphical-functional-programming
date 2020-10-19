@@ -8,6 +8,7 @@ import AdditionBlock from "../block/function/AdditionBlock";
 import MultiplicationBlock from "../block/function/MultiplicationBlock";
 import NegationBlock from "../block/function/NegationBlock";
 import NumberInputBlock from "../block/NumberInputBlock";
+import NumberOutputBlock from "../block/NumberOutputBlock";
 
 export default function IndexPage(): JSX.Element {
   const { programLayout: initProgramLayoutWithoutConnections, blockIds } = [
@@ -40,6 +41,11 @@ export default function IndexPage(): JSX.Element {
       name: "multiplication",
       block: new MultiplicationBlock(),
       location: { x: 200, y: 400 },
+    },
+    {
+      name: "result",
+      block: new NumberOutputBlock(),
+      location: { x: 250, y: 500 },
     },
   ].reduce(
     ({ programLayout, blockIds }, { name, block, location }) => {
@@ -88,6 +94,12 @@ export default function IndexPage(): JSX.Element {
       sourceBlockOutputIndex: 0,
       destinationBlockId: blockIds.get("multiplication")!,
       destinationBlockInputIndex: 1,
+    })
+    .addConnection({
+      sourceBlockId: blockIds.get("multiplication")!,
+      sourceBlockOutputIndex: 0,
+      destinationBlockId: blockIds.get("result")!,
+      destinationBlockInputIndex: 0,
     });
   /* eslint-enable @typescript-eslint/no-non-null-assertion */
 

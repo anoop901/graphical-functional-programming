@@ -15,6 +15,7 @@ import AdditionBlock from "../block/function/AdditionBlock";
 import NegationBlock from "../block/function/NegationBlock";
 import MultiplicationBlock from "../block/function/MultiplicationBlock";
 import NumberInputBlock from "../block/NumberInputBlock";
+import NumberOutputBlock from "../block/NumberOutputBlock";
 
 interface DragState {
   blockId: string;
@@ -72,6 +73,10 @@ export default function CodeEditor({
 
   // Any input value that's not present in the map has a value of 0.
   const [inputValues, setInputValues] = React.useState<Map<BlockId, number>>(
+    Map()
+  );
+  // Any output value that's not present in the map has a value of 0.
+  const [outputValues, setOutputValues] = React.useState<Map<BlockId, number>>(
     Map()
   );
 
@@ -144,6 +149,7 @@ export default function CodeEditor({
               setInputValue={(value: number) =>
                 setInputValues(setIn(inputValues, [blockId], value))
               }
+              outputValue={outputValues.get(blockId, null)}
               setBlock={(block) => {
                 setProgramLayout(programLayout.setBlock(blockId, block));
               }}
@@ -446,6 +452,21 @@ export default function CodeEditor({
           }}
         >
           Create number input block
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (menuState) {
+              setProgramLayout(
+                programLayout.addBlock(
+                  new NumberOutputBlock(),
+                  menuState.location
+                ).newProgramLayout
+              );
+            }
+            closeMenu();
+          }}
+        >
+          Create number output block
         </MenuItem>
       </Menu>
     </svg>
