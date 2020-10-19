@@ -4,3 +4,7 @@
   fill: #fff;
   user-select: none;
 }
+
+.BlockInEditor text.blocklabel {
+  font-size: 12px;
+}

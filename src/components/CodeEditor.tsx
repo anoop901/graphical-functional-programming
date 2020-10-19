@@ -7,13 +7,14 @@ import BlockInEditor, {
 } from "./BlockInEditor";
 import ConnectionInEditor from "./ConnectionInEditor";
 import { BlockId } from "../Program";
-import { set } from "immutable";
+import { Map, set, setIn } from "immutable";
 import Connection from "../Connection";
 import { Menu, MenuItem } from "@material-ui/core";
 import NumberLiteralBlock from "../block/NumberLiteralBlock";
 import AdditionBlock from "../block/function/AdditionBlock";
 import NegationBlock from "../block/function/NegationBlock";
 import MultiplicationBlock from "../block/function/MultiplicationBlock";
+import NumberInputBlock from "../block/NumberInputBlock";
 
 interface DragState {
   blockId: string;
@@ -67,6 +68,11 @@ export default function CodeEditor({
   >({ state: "IdleState" });
   const [menuState, setMenuState] = React.useState<MenuState | undefined>(
     undefined
+  );
+
+  // Any input value that's not present in the map has a value of 0.
+  const [inputValues, setInputValues] = React.useState<Map<BlockId, number>>(
+    Map()
   );
 
   function closeMenu() {
@@ -134,6 +140,10 @@ export default function CodeEditor({
             <BlockInEditor
               key={blockId}
               block={block}
+              inputValue={inputValues.get(blockId, 0)}
+              setInputValue={(value: number) =>
+                setInputValues(setIn(inputValues, [blockId], value))
+              }
               setBlock={(block) => {
                 setProgramLayout(programLayout.setBlock(blockId, block));
               }}
@@ -421,6 +431,21 @@ export default function CodeEditor({
           }}
         >
           Create multiplication block
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (menuState) {
+              setProgramLayout(
+                programLayout.addBlock(
+                  new NumberInputBlock(),
+                  menuState.location
+                ).newProgramLayout
+              );
+            }
+            closeMenu();
+          }}
+        >
+          Create number input block
         </MenuItem>
       </Menu>
     </svg>
