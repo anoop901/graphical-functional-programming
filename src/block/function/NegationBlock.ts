@@ -8,4 +8,9 @@ export default class NegationBlock extends FunctionBlock {
   constructor() {
     super();
   }
+
+  evaluate(inputValues: number[]): number[] {
+    const [x] = inputValues;
+    return [-x];
+  }
 }

@@ -11,4 +11,8 @@ export default class NumberLiteralBlock extends Block {
   accept<R>(blockVisitor: BlockVisitor<R>): R {
     return blockVisitor.visitNumberLiteralBlock(this);
   }
+
+  evaluate(inputValues: number[]): number[] {
+    return [this.value];
+  }
 }

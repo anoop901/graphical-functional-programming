@@ -11,4 +11,8 @@ export default class NumberOutputBlock extends Block {
   accept<R>(blockVisitor: BlockVisitor<R>): R {
     return blockVisitor.visitNumberOutputBlock(this);
   }
+
+  evaluate(inputValues: number[]): number[] {
+    return [];
+  }
 }
