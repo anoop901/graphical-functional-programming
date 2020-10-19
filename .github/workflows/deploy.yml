@@ -5,7 +5,7 @@ on:
     branches: [master]
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,7 +24,6 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@releases/v3
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPOSITORY_NAME: anoop901/anoop901.github.io
-          BRANCH: master
+          BRANCH: gh-pages
           FOLDER: dist
           TARGET_FOLDER: graphical-functional-programming
