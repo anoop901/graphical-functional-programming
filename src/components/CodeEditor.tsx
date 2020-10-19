@@ -277,12 +277,6 @@ export default function CodeEditor({
                 cy={inputLocation.y}
                 r={visible ? 20 : 10}
                 fill={visible ? (emphasized ? "#0006" : "#0003") : "#0000"}
-                onMouseDown={() => {
-                  const connection = programLayout.program.getConnectionToBlockInput(
-                    blockId,
-                    inputIndex
-                  );
-                }}
               />
             );
           }),
@@ -478,17 +472,6 @@ export default function CodeEditor({
           }}
         >
           Create number output block
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            if (menuState) {
-              const outputValues = programLayout.program.evaluate(inputValues);
-              // setOutputValues(outputValues);
-            }
-            closeMenu();
-          }}
-        >
-          Re-evaluate and update outputs
         </MenuItem>
       </Menu>
     </svg>

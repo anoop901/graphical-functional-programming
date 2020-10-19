@@ -12,7 +12,7 @@ export default class NumberInputBlock extends Block {
     return blockVisitor.visitNumberInputBlock(this);
   }
 
-  evaluate(inputValues: number[]): number[] {
+  evaluate(): number[] {
     throw new Error(
       "cannot evaluate number input block without external information"
     );

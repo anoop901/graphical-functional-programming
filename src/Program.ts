@@ -102,11 +102,11 @@ export default class Program {
   ): Connection | null {
     const [matchingConnectionEntry] = this.connections.filter(
       (connection) =>
-        connection.destinationBlockId == blockId &&
-        connection.destinationBlockInputIndex == inputIndex
+        connection.destinationBlockId === blockId &&
+        connection.destinationBlockInputIndex === inputIndex
     );
     if (matchingConnectionEntry !== undefined) {
-      const [_, matchingConnection] = matchingConnectionEntry;
+      const [, matchingConnection] = matchingConnectionEntry;
       return matchingConnection;
     } else {
       return null;

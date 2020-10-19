@@ -12,7 +12,7 @@ export default class NumberLiteralBlock extends Block {
     return blockVisitor.visitNumberLiteralBlock(this);
   }
 
-  evaluate(inputValues: number[]): number[] {
+  evaluate(): number[] {
     return [this.value];
   }
 }

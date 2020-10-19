@@ -12,7 +12,7 @@ export default class NumberOutputBlock extends Block {
     return blockVisitor.visitNumberOutputBlock(this);
   }
 
-  evaluate(inputValues: number[]): number[] {
+  evaluate(): number[] {
     return [];
   }
 }

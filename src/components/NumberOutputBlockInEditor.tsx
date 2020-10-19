@@ -98,7 +98,7 @@ export function getNumberOutputBlockPartOffsets(): BlockPartOffsets {
       }
       return { dx: blockWidth / 2, dy: notchHeight };
     },
-    getOutputOffset(outputIndex: number): { dx: number; dy: number } {
+    getOutputOffset(): { dx: number; dy: number } {
       throw new Error("number output block has no inputs");
     },
   };

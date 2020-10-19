@@ -10,7 +10,7 @@ export default class DummyFunctionBlock extends FunctionBlock {
     super();
   }
 
-  evaluate(inputValues: number[]): number[] {
+  evaluate(): number[] {
     return Array.from({ length: this.numOutputs }, () => 0);
   }
 }

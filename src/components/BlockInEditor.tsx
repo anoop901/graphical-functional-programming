@@ -52,7 +52,7 @@ export default function BlockInEditor({
           />
         ),
         // eslint-disable-next-line react/display-name
-        visitNumberInputBlock: (block) => (
+        visitNumberInputBlock: () => (
           <NumberInputBlockInEditor
             value={inputValue}
             setValue={setInputValue}
@@ -61,7 +61,7 @@ export default function BlockInEditor({
           />
         ),
         // eslint-disable-next-line react/display-name
-        visitNumberOutputBlock: (block) => (
+        visitNumberOutputBlock: () => (
           <NumberOutputBlockInEditor
             value={outputValue}
             onMouseDown={onMouseDown}
