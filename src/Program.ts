@@ -2,6 +2,8 @@ import type Block from "./block/Block";
 import { Map } from "immutable";
 import { v4 as uuid } from "uuid";
 import Connection from "./Connection";
+import NumberOutputBlock from "./block/NumberOutputBlock";
+import NumberInputBlock from "./block/NumberInputBlock";
 
 export type BlockId = string;
 export type ConnectionId = string;
@@ -92,5 +94,80 @@ export default class Program {
           connection.destinationBlockInputIndex === inputIndex
       )
       .isEmpty();
+  }
+
+  getConnectionToBlockInput(
+    blockId: BlockId,
+    inputIndex: number
+  ): Connection | null {
+    const [matchingConnectionEntry] = this.connections.filter(
+      (connection) =>
+        connection.destinationBlockId == blockId &&
+        connection.destinationBlockInputIndex == inputIndex
+    );
+    if (matchingConnectionEntry !== undefined) {
+      const [_, matchingConnection] = matchingConnectionEntry;
+      return matchingConnection;
+    } else {
+      return null;
+    }
+  }
+
+  getOutputBlocks(): Map<BlockId, Block> {
+    return this.blocks.filter(
+      (block) =>
+        // TODO: change this when other types of blocks are added
+        block instanceof NumberOutputBlock
+    );
+  }
+
+  evaluate(inputValues: Map<BlockId, number>): Map<BlockId, number | null> {
+    const evaluateBlockInput: (
+      blockId: BlockId,
+      inputIndex: number
+    ) => number | null = (
+      blockId: BlockId,
+      inputIndex: number
+    ): number | null => {
+      const connection = this.getConnectionToBlockInput(blockId, inputIndex);
+      if (connection !== null) {
+        const { sourceBlockId, sourceBlockOutputIndex } = connection;
+        return evaluateBlockOutput(sourceBlockId, sourceBlockOutputIndex);
+      } else {
+        return null;
+      }
+    };
+
+    const evaluateBlockOutput: (
+      blockId: BlockId,
+      outputIndex: number
+    ) => number | null = (
+      blockId: BlockId,
+      outputIndex: number
+    ): number | null => {
+      const block = this.getBlock(blockId);
+
+      if (block instanceof NumberInputBlock) {
+        return inputValues.get(blockId, 0);
+      }
+
+      const blockInputValuesOrNulls = Array.from(
+        { length: block.numInputs },
+        (_, inputIndex) => evaluateBlockInput(blockId, inputIndex)
+      );
+      const blockInputValues = blockInputValuesOrNulls.filter(
+        (value) => value !== null
+      ) as number[];
+      if (blockInputValues.length === blockInputValuesOrNulls.length) {
+        return block.evaluate(blockInputValues)[outputIndex];
+      } else {
+        return null;
+      }
+    };
+
+    const outputBlocks = this.getOutputBlocks();
+    return outputBlocks.map((block, blockId) => {
+      return evaluateBlockInput(blockId, 0);
+    });
   }
 }

@@ -75,10 +75,15 @@ export default function CodeEditor({
   const [inputValues, setInputValues] = React.useState<Map<BlockId, number>>(
     Map()
   );
-  // Any output value that's not present in the map has a value of 0.
-  const [outputValues, setOutputValues] = React.useState<Map<BlockId, number>>(
-    Map()
-  );
+
+  // TODO: Bring back outputValues as a state once I figure out how to eliminate
+  // excessive calls to program.evaluate().
+  // Null indicates an error in evaluating the output. Any output value that's
+  // not present in the map has a value of null.
+  // const [outputValues, setOutputValues] = React.useState<
+  //   Map<BlockId, number | null>
+  // >(Map());
+  const outputValues = programLayout.program.evaluate(inputValues);
 
   function closeMenu() {
     setMenuState(undefined);
@@ -272,6 +277,12 @@ export default function CodeEditor({
                 cy={inputLocation.y}
                 r={visible ? 20 : 10}
                 fill={visible ? (emphasized ? "#0006" : "#0003") : "#0000"}
+                onMouseDown={() => {
+                  const connection = programLayout.program.getConnectionToBlockInput(
+                    blockId,
+                    inputIndex
+                  );
+                }}
               />
             );
           }),
@@ -467,6 +478,17 @@ export default function CodeEditor({
           }}
         >
           Create number output block
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (menuState) {
+              const outputValues = programLayout.program.evaluate(inputValues);
+              // setOutputValues(outputValues);
+            }
+            closeMenu();
+          }}
+        >
+          Re-evaluate and update outputs
         </MenuItem>
       </Menu>
     </svg>
