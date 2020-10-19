@@ -8,4 +8,9 @@ export default class MultiplicationBlock extends FunctionBlock {
   constructor() {
     super();
   }
+
+  evaluate(inputValues: number[]): number[] {
+    const [x1, x2] = inputValues;
+    return [x1 * x2];
+  }
 }

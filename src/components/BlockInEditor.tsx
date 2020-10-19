@@ -7,17 +7,29 @@ import FunctionBlockInEditor, {
   getFunctionBlockPartOffsets,
 } from "./FunctionBlockInEditor";
 import "./BlockInEditor.css";
+import NumberInputBlockInEditor, {
+  getNumberInputBlockPartOffsets,
+} from "./NumberInputBlockInEditor";
+import NumberOutputBlockInEditor, {
+  getNumberOutputBlockPartOffsets,
+} from "./NumberOutputBlockInEditor";
 
 export default function BlockInEditor({
   block,
   setBlock,
   onMouseDown,
   location,
+  inputValue,
+  setInputValue,
+  outputValue,
 }: {
   block: Block;
   setBlock: (block: Block) => void;
   onMouseDown?: (e: React.MouseEvent) => void;
   location: { x: number; y: number };
+  inputValue: number;
+  setInputValue: (value: number) => void;
+  outputValue: number | null;
 }): JSX.Element {
   return (
     <g className="BlockInEditor">
@@ -39,6 +51,23 @@ export default function BlockInEditor({
             location={location}
           />
         ),
+        // eslint-disable-next-line react/display-name
+        visitNumberInputBlock: () => (
+          <NumberInputBlockInEditor
+            value={inputValue}
+            setValue={setInputValue}
+            onMouseDown={onMouseDown}
+            location={location}
+          />
+        ),
+        // eslint-disable-next-line react/display-name
+        visitNumberOutputBlock: () => (
+          <NumberOutputBlockInEditor
+            value={outputValue}
+            onMouseDown={onMouseDown}
+            location={location}
+          />
+        ),
       })}
     </g>
   );
@@ -53,6 +82,8 @@ function getBlockPartOffsets(block: Block): BlockPartOffsets {
   return block.accept({
     visitFunctionBlock: getFunctionBlockPartOffsets,
     visitNumberLiteralBlock: getNumberLiteralBlockPartOffsets,
+    visitNumberInputBlock: getNumberInputBlockPartOffsets,
+    visitNumberOutputBlock: getNumberOutputBlockPartOffsets,
   });
 }
 

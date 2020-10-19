@@ -7,13 +7,15 @@ import BlockInEditor, {
 } from "./BlockInEditor";
 import ConnectionInEditor from "./ConnectionInEditor";
 import { BlockId } from "../Program";
-import { set } from "immutable";
+import { Map, set, setIn } from "immutable";
 import Connection from "../Connection";
 import { Menu, MenuItem } from "@material-ui/core";
 import NumberLiteralBlock from "../block/NumberLiteralBlock";
 import AdditionBlock from "../block/function/AdditionBlock";
 import NegationBlock from "../block/function/NegationBlock";
 import MultiplicationBlock from "../block/function/MultiplicationBlock";
+import NumberInputBlock from "../block/NumberInputBlock";
+import NumberOutputBlock from "../block/NumberOutputBlock";
 
 interface DragState {
   blockId: string;
@@ -68,6 +70,20 @@ export default function CodeEditor({
   const [menuState, setMenuState] = React.useState<MenuState | undefined>(
     undefined
   );
+
+  // Any input value that's not present in the map has a value of 0.
+  const [inputValues, setInputValues] = React.useState<Map<BlockId, number>>(
+    Map()
+  );
+
+  // TODO: Bring back outputValues as a state once I figure out how to eliminate
+  // excessive calls to program.evaluate().
+  // Null indicates an error in evaluating the output. Any output value that's
+  // not present in the map has a value of null.
+  // const [outputValues, setOutputValues] = React.useState<
+  //   Map<BlockId, number | null>
+  // >(Map());
+  const outputValues = programLayout.program.evaluate(inputValues);
 
   function closeMenu() {
     setMenuState(undefined);
@@ -134,6 +150,11 @@ export default function CodeEditor({
             <BlockInEditor
               key={blockId}
               block={block}
+              inputValue={inputValues.get(blockId, 0)}
+              setInputValue={(value: number) =>
+                setInputValues(setIn(inputValues, [blockId], value))
+              }
+              outputValue={outputValues.get(blockId, null)}
               setBlock={(block) => {
                 setProgramLayout(programLayout.setBlock(blockId, block));
               }}
@@ -421,6 +442,36 @@ export default function CodeEditor({
           }}
         >
           Create multiplication block
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (menuState) {
+              setProgramLayout(
+                programLayout.addBlock(
+                  new NumberInputBlock(),
+                  menuState.location
+                ).newProgramLayout
+              );
+            }
+            closeMenu();
+          }}
+        >
+          Create number input block
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (menuState) {
+              setProgramLayout(
+                programLayout.addBlock(
+                  new NumberOutputBlock(),
+                  menuState.location
+                ).newProgramLayout
+              );
+            }
+            closeMenu();
+          }}
+        >
+          Create number output block
         </MenuItem>
       </Menu>
     </svg>
