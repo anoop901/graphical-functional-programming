@@ -24,5 +24,5 @@ module.exports = {
       },
     ],
   },
-  output: { publicPath: "/graphical-functional-programming" },
+  output: { publicPath: "/GraphicalFunctionalProgramming" },
 };
