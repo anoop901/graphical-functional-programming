@@ -9,6 +9,11 @@ module.exports = {
     "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended",
   ],
+  settings: {
+    react: {
+      version: "detect",
+    },
+  },
   globals: {
     Atomics: "readonly",
     SharedArrayBuffer: "readonly",
@@ -23,6 +28,7 @@ module.exports = {
   },
   plugins: ["react", "@typescript-eslint"],
   rules: {
-    eqeqeq: 2,
+    eqeqeq: "error",
+    "no-console": "error",
   },
 };
