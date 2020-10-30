@@ -84,7 +84,6 @@ export default function CodeEditor({
 
   React.useEffect(() => {
     const newOutputValues = programLayout.program.evaluate(inputValues);
-    console.log(`new outputs are ${newOutputValues}`);
     setOutputValues(newOutputValues);
   }, [programLayout.program, inputValues]);
 
