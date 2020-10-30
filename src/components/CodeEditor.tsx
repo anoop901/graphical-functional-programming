@@ -76,14 +76,17 @@ export default function CodeEditor({
     Map()
   );
 
-  // TODO: Bring back outputValues as a state once I figure out how to eliminate
-  // excessive calls to program.evaluate().
   // Null indicates an error in evaluating the output. Any output value that's
   // not present in the map has a value of null.
-  // const [outputValues, setOutputValues] = React.useState<
-  //   Map<BlockId, number | null>
-  // >(Map());
-  const outputValues = programLayout.program.evaluate(inputValues);
+  const [outputValues, setOutputValues] = React.useState<
+    Map<BlockId, number | null>
+  >(Map());
+
+  React.useEffect(() => {
+    const newOutputValues = programLayout.program.evaluate(inputValues);
+    console.log(`new outputs are ${newOutputValues}`);
+    setOutputValues(newOutputValues);
+  }, [programLayout.program, inputValues]);
 
   function closeMenu() {
     setMenuState(undefined);
