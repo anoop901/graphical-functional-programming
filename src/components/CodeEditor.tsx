@@ -20,7 +20,6 @@ import NumberOutputBlock from "../block/NumberOutputBlock";
 type EditorState =
   | IdleState
   | DragState
-  | HoveringOutputState
   | DrawingNewConnectionState
   | SnappingNewConnectionState;
 
@@ -32,12 +31,6 @@ interface DragState {
   state: "DragState";
   blockId: BlockId;
   offset: { x: number; y: number };
-}
-
-interface HoveringOutputState {
-  state: "HoveringOutputState";
-  blockId: BlockId;
-  outputIndex: number;
 }
 
 interface DrawingNewConnectionState {
@@ -66,6 +59,10 @@ export default function CodeEditor({
   const [editorState, setEditorState] = React.useState<EditorState>({
     state: "IdleState",
   });
+  const [hoveredBlockOutput, setHoveredBlockOutput] = React.useState<{
+    blockId: BlockId;
+    outputIndex: number;
+  } | null>(null);
   const [menuState, setMenuState] = React.useState<MenuState | undefined>(
     undefined
   );
@@ -108,8 +105,6 @@ export default function CodeEditor({
   };
 
   const handleCodeEditorMouseUp = () => {
-    // TODO: we might need to transition into "HoveringOutputState" instead,
-    // depending on the mouse location
     setEditorState({ state: "IdleState" });
     if (editorState.state === "SnappingNewConnectionState") {
       setProgramLayout(programLayout.addConnection(editorState.newConnection));
@@ -180,25 +175,6 @@ export default function CodeEditor({
     }
   };
 
-  const handleBlockOutputMouseEnter = (
-    blockId: BlockId,
-    outputIndex: number
-  ) => {
-    if (editorState.state === "IdleState") {
-      setEditorState({
-        state: "HoveringOutputState",
-        blockId,
-        outputIndex,
-      });
-    }
-  };
-
-  const handleBlockOutputMouseLeave = () => {
-    if (editorState.state === "HoveringOutputState") {
-      setEditorState({ state: "IdleState" });
-    }
-  };
-
   const handleBlockOutputMouseDown = (
     mouseLocation: {
       x: number;
@@ -207,7 +183,7 @@ export default function CodeEditor({
     blockId: BlockId,
     outputIndex: number
   ) => {
-    if (editorState.state === "HoveringOutputState") {
+    if (editorState.state === "IdleState") {
       setEditorState({
         state: "DrawingNewConnectionState",
         blockId,
@@ -353,15 +329,17 @@ export default function CodeEditor({
               location
             );
             const visible =
-              editorState.state === "HoveringOutputState" &&
-              editorState.blockId === blockId;
+              editorState.state === "IdleState" &&
+              hoveredBlockOutput !== null &&
+              hoveredBlockOutput.blockId === blockId &&
+              hoveredBlockOutput.outputIndex === outputIndex;
             return (
               <circle
                 onMouseEnter={() => {
-                  handleBlockOutputMouseEnter(blockId, outputIndex);
+                  setHoveredBlockOutput({ blockId, outputIndex });
                 }}
                 onMouseLeave={() => {
-                  handleBlockOutputMouseLeave();
+                  setHoveredBlockOutput(null);
                 }}
                 onMouseDown={(e) => {
                   if (svgRef.current !== null) {
