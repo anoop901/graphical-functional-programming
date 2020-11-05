@@ -119,7 +119,6 @@ export default function CodeEditor({
     x: number;
     y: number;
   }) => {
-    // TODO: only do this in IdleState
     if (editorState.state === "IdleState") {
       setMenuState({
         location: {
