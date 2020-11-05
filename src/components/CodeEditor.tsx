@@ -17,11 +17,7 @@ import MultiplicationBlock from "../block/function/MultiplicationBlock";
 import NumberInputBlock from "../block/NumberInputBlock";
 import NumberOutputBlock from "../block/NumberOutputBlock";
 
-type EditorState =
-  | IdleState
-  | DragState
-  | DrawingNewConnectionState
-  | SnappingNewConnectionState;
+type EditorState = IdleState | DragState | DrawingNewConnectionState;
 
 interface IdleState {
   state: "IdleState";
@@ -38,11 +34,6 @@ interface DrawingNewConnectionState {
   blockId: BlockId;
   outputIndex: number;
   mouseLocation: { x: number; y: number };
-}
-
-interface SnappingNewConnectionState {
-  state: "SnappingNewConnectionState";
-  newConnection: Connection;
 }
 
 interface MenuState {
@@ -62,6 +53,10 @@ export default function CodeEditor({
   const [hoveredBlockOutput, setHoveredBlockOutput] = React.useState<{
     blockId: BlockId;
     outputIndex: number;
+  } | null>(null);
+  const [hoveredBlockInput, setHoveredBlockInput] = React.useState<{
+    blockId: BlockId;
+    inputIndex: number;
   } | null>(null);
   const [menuState, setMenuState] = React.useState<MenuState | undefined>(
     undefined
@@ -106,8 +101,21 @@ export default function CodeEditor({
 
   const handleCodeEditorMouseUp = () => {
     setEditorState({ state: "IdleState" });
-    if (editorState.state === "SnappingNewConnectionState") {
-      setProgramLayout(programLayout.addConnection(editorState.newConnection));
+    if (
+      editorState.state === "DrawingNewConnectionState" &&
+      hoveredBlockInput !== null &&
+      programLayout.program.blockInputIsUnconnected(
+        hoveredBlockInput.blockId,
+        hoveredBlockInput.inputIndex
+      )
+    ) {
+      const newConnection: Connection = {
+        sourceBlockId: editorState.blockId,
+        sourceBlockOutputIndex: editorState.outputIndex,
+        destinationBlockId: hoveredBlockInput.blockId,
+        destinationBlockInputIndex: hoveredBlockInput.inputIndex,
+      };
+      setProgramLayout(programLayout.addConnection(newConnection));
     }
   };
 
@@ -145,33 +153,10 @@ export default function CodeEditor({
   };
 
   const handleBlockInputMouseEnter = (blockId: BlockId, inputIndex: number) => {
-    if (
-      editorState.state === "DrawingNewConnectionState" &&
-      programLayout.program.blockInputIsUnconnected(blockId, inputIndex)
-    ) {
-      setEditorState({
-        state: "SnappingNewConnectionState",
-        newConnection: {
-          sourceBlockId: editorState.blockId,
-          sourceBlockOutputIndex: editorState.outputIndex,
-          destinationBlockId: blockId,
-          destinationBlockInputIndex: inputIndex,
-        },
-      });
-    }
+    setHoveredBlockInput({ blockId, inputIndex });
   };
-  const handleBlockInputMouseLeave = (mouseLocation: {
-    x: number;
-    y: number;
-  }) => {
-    if (editorState.state === "SnappingNewConnectionState") {
-      setEditorState({
-        state: "DrawingNewConnectionState",
-        blockId: editorState.newConnection.sourceBlockId,
-        outputIndex: editorState.newConnection.sourceBlockOutputIndex,
-        mouseLocation,
-      });
-    }
+  const handleBlockInputMouseLeave = () => {
+    setHoveredBlockInput(null);
   };
 
   const handleBlockOutputMouseDown = (
@@ -288,30 +273,22 @@ export default function CodeEditor({
               location
             );
             const visible =
-              (editorState.state === "DrawingNewConnectionState" ||
-                editorState.state === "SnappingNewConnectionState") &&
+              editorState.state === "DrawingNewConnectionState" &&
               programLayout.program.blockInputIsUnconnected(
                 blockId,
                 inputIndex
               );
             const emphasized =
-              editorState.state === "SnappingNewConnectionState" &&
-              editorState.newConnection.destinationBlockId === blockId &&
-              editorState.newConnection.destinationBlockInputIndex ===
-                inputIndex;
+              hoveredBlockInput !== null &&
+              hoveredBlockInput.blockId === blockId &&
+              hoveredBlockInput.inputIndex === inputIndex;
             return (
               <circle
                 onMouseEnter={() => {
                   handleBlockInputMouseEnter(blockId, inputIndex);
                 }}
-                onMouseLeave={(e) => {
-                  if (svgRef.current !== null) {
-                    const mouseLocation = mouseEventToSvgPoint(
-                      e,
-                      svgRef.current
-                    );
-                    handleBlockInputMouseLeave(mouseLocation);
-                  }
+                onMouseLeave={() => {
+                  handleBlockInputMouseLeave();
                 }}
                 key={`${blockId}.in.${inputIndex}`}
                 cx={inputLocation.x}
@@ -364,44 +341,41 @@ export default function CodeEditor({
         ];
       })}
       {editorState.state === "DrawingNewConnectionState" ? (
-        <ConnectionInEditor
-          sourceOutputLocation={getBlockOutputLocation(
-            programLayout.program.getBlock(editorState.blockId),
-            editorState.outputIndex,
-            programLayout.getBlockLocation(editorState.blockId)
-          )}
-          destInputLocation={editorState.mouseLocation}
-          removeConnection={() => {
-            // do nothing
-          }}
-          preview
-        />
-      ) : null}
-      {editorState.state === "SnappingNewConnectionState" ? (
-        <ConnectionInEditor
-          sourceOutputLocation={getBlockOutputLocation(
-            programLayout.program.getBlock(
-              editorState.newConnection.sourceBlockId
-            ),
-            editorState.newConnection.sourceBlockOutputIndex,
-            programLayout.getBlockLocation(
-              editorState.newConnection.sourceBlockId
-            )
-          )}
-          destInputLocation={getBlockInputLocation(
-            programLayout.program.getBlock(
-              editorState.newConnection.destinationBlockId
-            ),
-            editorState.newConnection.destinationBlockInputIndex,
-            programLayout.getBlockLocation(
-              editorState.newConnection.destinationBlockId
-            )
-          )}
-          removeConnection={() => {
-            // do nothing
-          }}
-          preview
-        />
+        hoveredBlockInput !== null &&
+        programLayout.program.blockInputIsUnconnected(
+          hoveredBlockInput.blockId,
+          hoveredBlockInput.inputIndex
+        ) ? (
+          <ConnectionInEditor
+            sourceOutputLocation={getBlockOutputLocation(
+              programLayout.program.getBlock(editorState.blockId),
+              editorState.outputIndex,
+              programLayout.getBlockLocation(editorState.blockId)
+            )}
+            destInputLocation={getBlockInputLocation(
+              programLayout.program.getBlock(hoveredBlockInput.blockId),
+              hoveredBlockInput.inputIndex,
+              programLayout.getBlockLocation(hoveredBlockInput.blockId)
+            )}
+            removeConnection={() => {
+              // do nothing
+            }}
+            preview
+          />
+        ) : (
+          <ConnectionInEditor
+            sourceOutputLocation={getBlockOutputLocation(
+              programLayout.program.getBlock(editorState.blockId),
+              editorState.outputIndex,
+              programLayout.getBlockLocation(editorState.blockId)
+            )}
+            destInputLocation={editorState.mouseLocation}
+            removeConnection={() => {
+              // do nothing
+            }}
+            preview
+          />
+        )
       ) : null}
       <Menu
         keepMounted
