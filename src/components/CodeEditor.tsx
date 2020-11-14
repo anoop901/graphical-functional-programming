@@ -7,7 +7,7 @@ import BlockInEditor, {
 } from "./BlockInEditor";
 import ConnectionInEditor from "./ConnectionInEditor";
 import { BlockId } from "../Program";
-import { Map, set, setIn } from "immutable";
+import { Map, set } from "immutable";
 import Connection from "../Connection";
 import { Menu, MenuItem } from "@material-ui/core";
 import NumberLiteralBlock from "../block/NumberLiteralBlock";
@@ -254,7 +254,7 @@ export default function CodeEditor({
               block={block}
               inputValue={inputValues.get(blockId, 0)}
               setInputValue={(value: number) =>
-                setInputValues(setIn(inputValues, [blockId], value))
+                setInputValues(set(inputValues, blockId, value))
               }
               outputValue={outputValues.get(blockId, null)}
               setBlock={(block) => {
