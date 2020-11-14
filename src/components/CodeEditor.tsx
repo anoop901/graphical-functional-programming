@@ -40,13 +40,10 @@ interface MenuState {
   location: { x: number; y: number };
 }
 
-export default function CodeEditor({
-  programLayout,
-  setProgramLayout,
-}: {
-  programLayout: ProgramLayout;
-  setProgramLayout: (programLayout: ProgramLayout) => void;
-}): JSX.Element {
+function useCodeEditor(
+  programLayout: ProgramLayout,
+  setProgramLayout: (programLayout: ProgramLayout) => void
+) {
   const [editorState, setEditorState] = React.useState<EditorState>({
     state: "IdleState",
   });
@@ -178,6 +175,55 @@ export default function CodeEditor({
   };
 
   const svgRef = React.useRef<SVGSVGElement>(null);
+  return {
+    svgRef,
+    handleCodeEditorMouseMove,
+    handleCodeEditorMouseUp,
+    handleCodeEditorMouseLeave,
+    handleCodeEditorContextMenu,
+    handleBlockInEditorMouseDown,
+    handleBlockInputMouseEnter,
+    handleBlockInputMouseLeave,
+    handleBlockOutputMouseDown,
+    hoveredBlockInput,
+    hoveredBlockOutput,
+    setHoveredBlockOutput,
+    editorState,
+    inputValues,
+    setInputValues,
+    outputValues,
+    menuState,
+    closeMenu,
+  };
+}
+
+export default function CodeEditor({
+  programLayout,
+  setProgramLayout,
+}: {
+  programLayout: ProgramLayout;
+  setProgramLayout: (programLayout: ProgramLayout) => void;
+}): JSX.Element {
+  const {
+    svgRef,
+    handleCodeEditorMouseMove,
+    handleCodeEditorMouseUp,
+    handleCodeEditorMouseLeave,
+    handleCodeEditorContextMenu,
+    handleBlockInEditorMouseDown,
+    handleBlockInputMouseEnter,
+    handleBlockInputMouseLeave,
+    handleBlockOutputMouseDown,
+    hoveredBlockInput,
+    hoveredBlockOutput,
+    setHoveredBlockOutput,
+    editorState,
+    inputValues,
+    setInputValues,
+    outputValues,
+    menuState,
+    closeMenu,
+  } = useCodeEditor(programLayout, setProgramLayout);
   return (
     <svg
       ref={svgRef}
