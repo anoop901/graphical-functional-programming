@@ -75,116 +75,102 @@ function useCodeEditor(
     setOutputValues(newOutputValues);
   }, [programLayout.program, inputValues]);
 
-  function closeMenu() {
-    setMenuState(undefined);
-  }
+  return {
+    closeMenu: () => {
+      setMenuState(undefined);
+    },
 
-  const handleCodeEditorMouseMove = (mouseLocation: {
-    x: number;
-    y: number;
-  }) => {
-    if (editorState.state === "DragState") {
-      setProgramLayout(
-        programLayout.moveBlock(editorState.blockId, {
-          x: mouseLocation.x - editorState.offset.x,
-          y: mouseLocation.y - editorState.offset.y,
-        })
-      );
-    }
-    if (editorState.state === "DrawingNewConnectionState") {
-      setEditorState(set(editorState, "mouseLocation", mouseLocation));
-    }
-  };
+    handleCodeEditorMouseMove: (mouseLocation: { x: number; y: number }) => {
+      if (editorState.state === "DragState") {
+        setProgramLayout(
+          programLayout.moveBlock(editorState.blockId, {
+            x: mouseLocation.x - editorState.offset.x,
+            y: mouseLocation.y - editorState.offset.y,
+          })
+        );
+      }
+      if (editorState.state === "DrawingNewConnectionState") {
+        setEditorState(set(editorState, "mouseLocation", mouseLocation));
+      }
+    },
 
-  const handleCodeEditorMouseUp = () => {
-    setEditorState({ state: "IdleState" });
-    if (
-      editorState.state === "DrawingNewConnectionState" &&
-      hoveredBlockInput !== null &&
-      programLayout.program.blockInputIsUnconnected(
-        hoveredBlockInput.blockId,
-        hoveredBlockInput.inputIndex
-      )
-    ) {
-      const newConnection: Connection = {
-        sourceBlockId: editorState.blockId,
-        sourceBlockOutputIndex: editorState.outputIndex,
-        destinationBlockId: hoveredBlockInput.blockId,
-        destinationBlockInputIndex: hoveredBlockInput.inputIndex,
-      };
-      setProgramLayout(programLayout.addConnection(newConnection));
-    }
-  };
+    handleCodeEditorMouseUp: () => {
+      setEditorState({ state: "IdleState" });
+      if (
+        editorState.state === "DrawingNewConnectionState" &&
+        hoveredBlockInput !== null &&
+        programLayout.program.blockInputIsUnconnected(
+          hoveredBlockInput.blockId,
+          hoveredBlockInput.inputIndex
+        )
+      ) {
+        const newConnection: Connection = {
+          sourceBlockId: editorState.blockId,
+          sourceBlockOutputIndex: editorState.outputIndex,
+          destinationBlockId: hoveredBlockInput.blockId,
+          destinationBlockInputIndex: hoveredBlockInput.inputIndex,
+        };
+        setProgramLayout(programLayout.addConnection(newConnection));
+      }
+    },
 
-  const handleCodeEditorMouseLeave = () => {
-    setEditorState({ state: "IdleState" });
-  };
+    handleCodeEditorMouseLeave: () => {
+      setEditorState({ state: "IdleState" });
+    },
 
-  const handleCodeEditorContextMenu = (mouseLocation: {
-    x: number;
-    y: number;
-  }) => {
-    if (editorState.state === "IdleState") {
-      setMenuState({
-        location: {
-          x: mouseLocation.x - 2,
-          y: mouseLocation.y - 4,
+    handleCodeEditorContextMenu: (mouseLocation: { x: number; y: number }) => {
+      if (editorState.state === "IdleState") {
+        setMenuState({
+          location: {
+            x: mouseLocation.x - 2,
+            y: mouseLocation.y - 4,
+          },
+        });
+      }
+    },
+
+    handleBlockInEditorMouseDown: (
+      blockId: BlockId,
+      blockLocation: { x: number; y: number },
+      mouseLocation: { x: number; y: number }
+    ) => {
+      setEditorState({
+        state: "DragState",
+        blockId,
+        offset: {
+          x: mouseLocation.x - blockLocation.x,
+          y: mouseLocation.y - blockLocation.y,
         },
       });
-    }
-  };
-
-  const handleBlockInEditorMouseDown = (
-    blockId: BlockId,
-    blockLocation: { x: number; y: number },
-    mouseLocation: { x: number; y: number }
-  ) => {
-    setEditorState({
-      state: "DragState",
-      blockId,
-      offset: {
-        x: mouseLocation.x - blockLocation.x,
-        y: mouseLocation.y - blockLocation.y,
-      },
-    });
-  };
-
-  const handleBlockInputMouseEnter = (blockId: BlockId, inputIndex: number) => {
-    setHoveredBlockInput({ blockId, inputIndex });
-  };
-  const handleBlockInputMouseLeave = () => {
-    setHoveredBlockInput(null);
-  };
-
-  const handleBlockOutputMouseDown = (
-    mouseLocation: {
-      x: number;
-      y: number;
     },
-    blockId: BlockId,
-    outputIndex: number
-  ) => {
-    if (editorState.state === "IdleState") {
-      setEditorState({
-        state: "DrawingNewConnectionState",
-        blockId,
-        outputIndex,
-        mouseLocation,
-      });
-    }
-  };
 
-  const svgRef = React.useRef<SVGSVGElement>(null);
-  return {
-    svgRef,
-    handleCodeEditorMouseMove,
-    handleCodeEditorMouseUp,
-    handleCodeEditorMouseLeave,
-    handleCodeEditorContextMenu,
-    handleBlockInEditorMouseDown,
-    handleBlockInputMouseEnter,
-    handleBlockInputMouseLeave,
-    handleBlockOutputMouseDown,
+    handleBlockInputMouseEnter: (blockId: BlockId, inputIndex: number) => {
+      setHoveredBlockInput({ blockId, inputIndex });
+    },
+    handleBlockInputMouseLeave: () => {
+      setHoveredBlockInput(null);
+    },
+
+    handleBlockOutputMouseDown: (
+      mouseLocation: {
+        x: number;
+        y: number;
+      },
+      blockId: BlockId,
+      outputIndex: number
+    ) => {
+      if (editorState.state === "IdleState") {
+        setEditorState({
+          state: "DrawingNewConnectionState",
+          blockId,
+          outputIndex,
+          mouseLocation,
+        });
+      }
+    },
+
+    svgRef: React.useRef<SVGSVGElement>(null),
+
     hoveredBlockInput,
     hoveredBlockOutput,
     setHoveredBlockOutput,
@@ -193,7 +179,6 @@ function useCodeEditor(
     setInputValues,
     outputValues,
     menuState,
-    closeMenu,
   };
 }
 
