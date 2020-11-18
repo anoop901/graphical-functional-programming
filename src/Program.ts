@@ -42,7 +42,14 @@ export default class Program {
   }
 
   removeBlock(blockId: BlockId): Program {
-    return new Program(this.blocks.remove(blockId), this.connections);
+    return new Program(
+      this.blocks.remove(blockId),
+      this.connections.filterNot(
+        (connection) =>
+          connection.destinationBlockId === blockId ||
+          connection.sourceBlockId === blockId
+      )
+    );
   }
 
   addConnection(connection: Connection): Program {

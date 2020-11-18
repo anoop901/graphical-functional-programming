@@ -245,6 +245,9 @@ export default function CodeEditor({
               setBlock={(block) => {
                 setProgramLayout(programLayout.setBlock(blockId, block));
               }}
+              removeBlock={() => {
+                setProgramLayout(programLayout.removeBlock(blockId));
+              }}
               location={blockLocation}
               onMouseDown={(e) => {
                 if (svgRef.current !== null) {
