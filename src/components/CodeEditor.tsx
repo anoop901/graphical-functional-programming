@@ -7,7 +7,7 @@ import BlockInEditor, {
 } from "./BlockInEditor";
 import ConnectionInEditor from "./ConnectionInEditor";
 import { BlockId } from "../Program";
-import { Map, set, setIn } from "immutable";
+import { Map, set } from "immutable";
 import Connection from "../Connection";
 import { Menu, MenuItem } from "@material-ui/core";
 import NumberLiteralBlock from "../block/NumberLiteralBlock";
@@ -17,25 +17,16 @@ import MultiplicationBlock from "../block/function/MultiplicationBlock";
 import NumberInputBlock from "../block/NumberInputBlock";
 import NumberOutputBlock from "../block/NumberOutputBlock";
 
-interface DragState {
-  blockId: string;
-  offset: { x: number; y: number };
-}
-
-type AddingConnectionState =
-  | IdleState
-  | HoveringOutputState
-  | DrawingNewConnectionState
-  | SnappingNewConnectionState;
+type EditorState = IdleState | DragState | DrawingNewConnectionState;
 
 interface IdleState {
   state: "IdleState";
 }
 
-interface HoveringOutputState {
-  state: "HoveringOutputState";
+interface DragState {
+  state: "DragState";
   blockId: BlockId;
-  outputIndex: number;
+  offset: { x: number; y: number };
 }
 
 interface DrawingNewConnectionState {
@@ -45,28 +36,25 @@ interface DrawingNewConnectionState {
   mouseLocation: { x: number; y: number };
 }
 
-interface SnappingNewConnectionState {
-  state: "SnappingNewConnectionState";
-  newConnection: Connection;
-}
-
 interface MenuState {
   location: { x: number; y: number };
 }
 
-export default function CodeEditor({
-  programLayout,
-  setProgramLayout,
-}: {
-  programLayout: ProgramLayout;
-  setProgramLayout: (programLayout: ProgramLayout) => void;
-}): JSX.Element {
-  const [dragState, setDragState] = React.useState<DragState | undefined>(
-    undefined
-  );
-  const [addingConnectionState, setAddingConnectionState] = React.useState<
-    AddingConnectionState
-  >({ state: "IdleState" });
+function useCodeEditor(
+  programLayout: ProgramLayout,
+  setProgramLayout: (programLayout: ProgramLayout) => void
+) {
+  const [editorState, setEditorState] = React.useState<EditorState>({
+    state: "IdleState",
+  });
+  const [hoveredBlockOutput, setHoveredBlockOutput] = React.useState<{
+    blockId: BlockId;
+    outputIndex: number;
+  } | null>(null);
+  const [hoveredBlockInput, setHoveredBlockInput] = React.useState<{
+    blockId: BlockId;
+    inputIndex: number;
+  } | null>(null);
   const [menuState, setMenuState] = React.useState<MenuState | undefined>(
     undefined
   );
@@ -87,62 +75,159 @@ export default function CodeEditor({
     setOutputValues(newOutputValues);
   }, [programLayout.program, inputValues]);
 
-  function closeMenu() {
-    setMenuState(undefined);
-  }
+  return {
+    closeMenu: () => {
+      setMenuState(undefined);
+    },
 
-  const svgRef = React.useRef<SVGSVGElement>(null);
+    handleCodeEditorMouseMove: (mouseLocation: { x: number; y: number }) => {
+      if (editorState.state === "DragState") {
+        setProgramLayout(
+          programLayout.moveBlock(editorState.blockId, {
+            x: mouseLocation.x - editorState.offset.x,
+            y: mouseLocation.y - editorState.offset.y,
+          })
+        );
+      }
+      if (editorState.state === "DrawingNewConnectionState") {
+        setEditorState(set(editorState, "mouseLocation", mouseLocation));
+      }
+    },
+
+    handleCodeEditorMouseUp: () => {
+      setEditorState({ state: "IdleState" });
+      if (
+        editorState.state === "DrawingNewConnectionState" &&
+        hoveredBlockInput !== null &&
+        programLayout.program.blockInputIsUnconnected(
+          hoveredBlockInput.blockId,
+          hoveredBlockInput.inputIndex
+        )
+      ) {
+        const newConnection: Connection = {
+          sourceBlockId: editorState.blockId,
+          sourceBlockOutputIndex: editorState.outputIndex,
+          destinationBlockId: hoveredBlockInput.blockId,
+          destinationBlockInputIndex: hoveredBlockInput.inputIndex,
+        };
+        setProgramLayout(programLayout.addConnection(newConnection));
+      }
+    },
+
+    handleCodeEditorMouseLeave: () => {
+      setEditorState({ state: "IdleState" });
+    },
+
+    handleCodeEditorContextMenu: (mouseLocation: { x: number; y: number }) => {
+      if (editorState.state === "IdleState") {
+        setMenuState({
+          location: {
+            x: mouseLocation.x - 2,
+            y: mouseLocation.y - 4,
+          },
+        });
+      }
+    },
+
+    handleBlockInEditorMouseDown: (
+      blockId: BlockId,
+      blockLocation: { x: number; y: number },
+      mouseLocation: { x: number; y: number }
+    ) => {
+      setEditorState({
+        state: "DragState",
+        blockId,
+        offset: {
+          x: mouseLocation.x - blockLocation.x,
+          y: mouseLocation.y - blockLocation.y,
+        },
+      });
+    },
+
+    handleBlockInputMouseEnter: (blockId: BlockId, inputIndex: number) => {
+      setHoveredBlockInput({ blockId, inputIndex });
+    },
+    handleBlockInputMouseLeave: () => {
+      setHoveredBlockInput(null);
+    },
+
+    handleBlockOutputMouseDown: (
+      mouseLocation: {
+        x: number;
+        y: number;
+      },
+      blockId: BlockId,
+      outputIndex: number
+    ) => {
+      if (editorState.state === "IdleState") {
+        setEditorState({
+          state: "DrawingNewConnectionState",
+          blockId,
+          outputIndex,
+          mouseLocation,
+        });
+      }
+    },
+
+    svgRef: React.useRef<SVGSVGElement>(null),
+
+    hoveredBlockInput,
+    hoveredBlockOutput,
+    setHoveredBlockOutput,
+    editorState,
+    inputValues,
+    setInputValues,
+    outputValues,
+    menuState,
+  };
+}
+
+export default function CodeEditor({
+  programLayout,
+  setProgramLayout,
+}: {
+  programLayout: ProgramLayout;
+  setProgramLayout: (programLayout: ProgramLayout) => void;
+}): JSX.Element {
+  const {
+    svgRef,
+    handleCodeEditorMouseMove,
+    handleCodeEditorMouseUp,
+    handleCodeEditorMouseLeave,
+    handleCodeEditorContextMenu,
+    handleBlockInEditorMouseDown,
+    handleBlockInputMouseEnter,
+    handleBlockInputMouseLeave,
+    handleBlockOutputMouseDown,
+    hoveredBlockInput,
+    hoveredBlockOutput,
+    setHoveredBlockOutput,
+    editorState,
+    inputValues,
+    setInputValues,
+    outputValues,
+    menuState,
+    closeMenu,
+  } = useCodeEditor(programLayout, setProgramLayout);
   return (
     <svg
       ref={svgRef}
       className="CodeEditor"
       onMouseMove={(e) => {
-        if (dragState !== undefined && svgRef.current !== null) {
+        if (svgRef.current !== null) {
           const mouseLocation = mouseEventToSvgPoint(e, svgRef.current);
-          setProgramLayout(
-            programLayout.moveBlock(dragState.blockId, {
-              x: mouseLocation.x - dragState.offset.x,
-              y: mouseLocation.y - dragState.offset.y,
-            })
-          );
-        }
-        if (
-          addingConnectionState.state === "DrawingNewConnectionState" &&
-          svgRef.current !== null
-        ) {
-          const mouseLocation = mouseEventToSvgPoint(e, svgRef.current);
-          setAddingConnectionState(
-            set(addingConnectionState, "mouseLocation", mouseLocation)
-          );
+          handleCodeEditorMouseMove(mouseLocation);
         }
       }}
       onMouseUp={() => {
-        setDragState(undefined);
-        if (
-          addingConnectionState.state === "DrawingNewConnectionState" ||
-          addingConnectionState.state === "SnappingNewConnectionState"
-        ) {
-          setAddingConnectionState({ state: "IdleState" });
-          if (addingConnectionState.state === "SnappingNewConnectionState") {
-            setProgramLayout(
-              programLayout.addConnection(addingConnectionState.newConnection)
-            );
-          }
-        }
+        handleCodeEditorMouseUp();
       }}
       onMouseLeave={() => {
-        setDragState(undefined);
+        handleCodeEditorMouseLeave();
       }}
       onContextMenu={(e) => {
         e.preventDefault();
-        if (svgRef.current !== null) {
-          setMenuState({
-            location: {
-              x: e.clientX - 2,
-              y: e.clientY - 4,
-            },
-          });
-        }
+        handleCodeEditorContextMenu({ x: e.clientX, y: e.clientY });
       }}
     >
       {programLayout.program.blocks
@@ -154,7 +239,7 @@ export default function CodeEditor({
               block={block}
               inputValue={inputValues.get(blockId, 0)}
               setInputValue={(value: number) =>
-                setInputValues(setIn(inputValues, [blockId], value))
+                setInputValues(set(inputValues, blockId, value))
               }
               outputValue={outputValues.get(blockId, null)}
               setBlock={(block) => {
@@ -164,14 +249,11 @@ export default function CodeEditor({
               onMouseDown={(e) => {
                 if (svgRef.current !== null) {
                   const mouseLocation = mouseEventToSvgPoint(e, svgRef.current);
-
-                  setDragState({
+                  handleBlockInEditorMouseDown(
                     blockId,
-                    offset: {
-                      x: mouseLocation.x - blockLocation.x,
-                      y: mouseLocation.y - blockLocation.y,
-                    },
-                  });
+                    blockLocation,
+                    mouseLocation
+                  );
                 }
               }}
             />
@@ -222,57 +304,22 @@ export default function CodeEditor({
               location
             );
             const visible =
-              (addingConnectionState.state === "DrawingNewConnectionState" ||
-                addingConnectionState.state === "SnappingNewConnectionState") &&
+              editorState.state === "DrawingNewConnectionState" &&
               programLayout.program.blockInputIsUnconnected(
                 blockId,
                 inputIndex
               );
             const emphasized =
-              addingConnectionState.state === "SnappingNewConnectionState" &&
-              addingConnectionState.newConnection.destinationBlockId ===
-                blockId &&
-              addingConnectionState.newConnection.destinationBlockInputIndex ===
-                inputIndex;
+              hoveredBlockInput !== null &&
+              hoveredBlockInput.blockId === blockId &&
+              hoveredBlockInput.inputIndex === inputIndex;
             return (
               <circle
                 onMouseEnter={() => {
-                  if (
-                    addingConnectionState.state ===
-                      "DrawingNewConnectionState" &&
-                    programLayout.program.blockInputIsUnconnected(
-                      blockId,
-                      inputIndex
-                    )
-                  ) {
-                    setAddingConnectionState({
-                      state: "SnappingNewConnectionState",
-                      newConnection: {
-                        sourceBlockId: addingConnectionState.blockId,
-                        sourceBlockOutputIndex:
-                          addingConnectionState.outputIndex,
-                        destinationBlockId: blockId,
-                        destinationBlockInputIndex: inputIndex,
-                      },
-                    });
-                  }
+                  handleBlockInputMouseEnter(blockId, inputIndex);
                 }}
-                onMouseLeave={(e) => {
-                  if (
-                    addingConnectionState.state ===
-                      "SnappingNewConnectionState" &&
-                    svgRef.current !== null
-                  ) {
-                    setAddingConnectionState({
-                      state: "DrawingNewConnectionState",
-                      blockId:
-                        addingConnectionState.newConnection.sourceBlockId,
-                      outputIndex:
-                        addingConnectionState.newConnection
-                          .sourceBlockOutputIndex,
-                      mouseLocation: mouseEventToSvgPoint(e, svgRef.current),
-                    });
-                  }
+                onMouseLeave={() => {
+                  handleBlockInputMouseLeave();
                 }}
                 key={`${blockId}.in.${inputIndex}`}
                 cx={inputLocation.x}
@@ -289,38 +336,29 @@ export default function CodeEditor({
               location
             );
             const visible =
-              addingConnectionState.state === "HoveringOutputState" &&
-              addingConnectionState.blockId === blockId;
+              editorState.state === "IdleState" &&
+              hoveredBlockOutput !== null &&
+              hoveredBlockOutput.blockId === blockId &&
+              hoveredBlockOutput.outputIndex === outputIndex;
             return (
               <circle
                 onMouseEnter={() => {
-                  if (addingConnectionState.state === "IdleState") {
-                    setAddingConnectionState({
-                      state: "HoveringOutputState",
-                      blockId,
-                      outputIndex,
-                    });
-                  }
+                  setHoveredBlockOutput({ blockId, outputIndex });
                 }}
                 onMouseLeave={() => {
-                  if (addingConnectionState.state === "HoveringOutputState") {
-                    setAddingConnectionState({ state: "IdleState" });
-                  }
+                  setHoveredBlockOutput(null);
                 }}
                 onMouseDown={(e) => {
-                  if (addingConnectionState.state === "HoveringOutputState") {
-                    if (svgRef.current !== null) {
-                      const mouseLocation = mouseEventToSvgPoint(
-                        e,
-                        svgRef.current
-                      );
-                      setAddingConnectionState({
-                        state: "DrawingNewConnectionState",
-                        blockId,
-                        outputIndex,
-                        mouseLocation,
-                      });
-                    }
+                  if (svgRef.current !== null) {
+                    const mouseLocation = mouseEventToSvgPoint(
+                      e,
+                      svgRef.current
+                    );
+                    handleBlockOutputMouseDown(
+                      mouseLocation,
+                      blockId,
+                      outputIndex
+                    );
                   }
                 }}
                 key={`${blockId}.out.${outputIndex}`}
@@ -333,45 +371,42 @@ export default function CodeEditor({
           }),
         ];
       })}
-      {addingConnectionState.state === "DrawingNewConnectionState" ? (
-        <ConnectionInEditor
-          sourceOutputLocation={getBlockOutputLocation(
-            programLayout.program.getBlock(addingConnectionState.blockId),
-            addingConnectionState.outputIndex,
-            programLayout.getBlockLocation(addingConnectionState.blockId)
-          )}
-          destInputLocation={addingConnectionState.mouseLocation}
-          removeConnection={() => {
-            // do nothing
-          }}
-          preview
-        />
-      ) : null}
-      {addingConnectionState.state === "SnappingNewConnectionState" ? (
-        <ConnectionInEditor
-          sourceOutputLocation={getBlockOutputLocation(
-            programLayout.program.getBlock(
-              addingConnectionState.newConnection.sourceBlockId
-            ),
-            addingConnectionState.newConnection.sourceBlockOutputIndex,
-            programLayout.getBlockLocation(
-              addingConnectionState.newConnection.sourceBlockId
-            )
-          )}
-          destInputLocation={getBlockInputLocation(
-            programLayout.program.getBlock(
-              addingConnectionState.newConnection.destinationBlockId
-            ),
-            addingConnectionState.newConnection.destinationBlockInputIndex,
-            programLayout.getBlockLocation(
-              addingConnectionState.newConnection.destinationBlockId
-            )
-          )}
-          removeConnection={() => {
-            // do nothing
-          }}
-          preview
-        />
+      {editorState.state === "DrawingNewConnectionState" ? (
+        hoveredBlockInput !== null &&
+        programLayout.program.blockInputIsUnconnected(
+          hoveredBlockInput.blockId,
+          hoveredBlockInput.inputIndex
+        ) ? (
+          <ConnectionInEditor
+            sourceOutputLocation={getBlockOutputLocation(
+              programLayout.program.getBlock(editorState.blockId),
+              editorState.outputIndex,
+              programLayout.getBlockLocation(editorState.blockId)
+            )}
+            destInputLocation={getBlockInputLocation(
+              programLayout.program.getBlock(hoveredBlockInput.blockId),
+              hoveredBlockInput.inputIndex,
+              programLayout.getBlockLocation(hoveredBlockInput.blockId)
+            )}
+            removeConnection={() => {
+              // do nothing
+            }}
+            preview
+          />
+        ) : (
+          <ConnectionInEditor
+            sourceOutputLocation={getBlockOutputLocation(
+              programLayout.program.getBlock(editorState.blockId),
+              editorState.outputIndex,
+              programLayout.getBlockLocation(editorState.blockId)
+            )}
+            destInputLocation={editorState.mouseLocation}
+            removeConnection={() => {
+              // do nothing
+            }}
+            preview
+          />
+        )
       ) : null}
       <Menu
         keepMounted
