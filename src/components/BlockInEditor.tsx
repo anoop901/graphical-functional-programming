@@ -13,10 +13,43 @@ import NumberInputBlockInEditor, {
 import NumberOutputBlockInEditor, {
   getNumberOutputBlockPartOffsets,
 } from "./NumberOutputBlockInEditor";
+import { Menu, MenuItem } from "@material-ui/core";
+
+interface MenuState {
+  location: { x: number; y: number };
+}
+function useMenu() {
+  const [menuState, setMenuState] = React.useState<MenuState | undefined>(
+    undefined
+  );
+  return {
+    closeMenu: () => {
+      setMenuState(undefined);
+    },
+    menuOpen: menuState !== undefined,
+    anchorPosition:
+      menuState !== undefined
+        ? {
+            top: menuState.location.y,
+            left: menuState.location.x,
+          }
+        : undefined,
+    handleContextMenu: (e: React.MouseEvent<SVGGElement, MouseEvent>) => {
+      e.preventDefault();
+      setMenuState({
+        location: {
+          x: e.clientX - 2,
+          y: e.clientY - 4,
+        },
+      });
+    },
+  };
+}
 
 export default function BlockInEditor({
   block,
   setBlock,
+  removeBlock,
   onMouseDown,
   location,
   inputValue,
@@ -25,14 +58,16 @@ export default function BlockInEditor({
 }: {
   block: Block;
   setBlock: (block: Block) => void;
+  removeBlock: () => void;
   onMouseDown?: (e: React.MouseEvent) => void;
   location: { x: number; y: number };
   inputValue: number;
   setInputValue: (value: number) => void;
   outputValue: number | null;
 }): JSX.Element {
+  const { anchorPosition, menuOpen, closeMenu, handleContextMenu } = useMenu();
   return (
-    <g className="BlockInEditor">
+    <g className="BlockInEditor" onContextMenu={handleContextMenu}>
       {block.accept({
         // eslint-disable-next-line react/display-name
         visitFunctionBlock: (block) => (
@@ -69,6 +104,21 @@ export default function BlockInEditor({
           />
         ),
       })}
+      <Menu
+        open={menuOpen}
+        onClose={closeMenu}
+        anchorPosition={anchorPosition}
+        anchorReference="anchorPosition"
+      >
+        <MenuItem
+          onClick={() => {
+            removeBlock();
+            closeMenu();
+          }}
+        >
+          Remove
+        </MenuItem>
+      </Menu>
     </g>
   );
 }
