@@ -30,9 +30,9 @@ function useMenu() {
     anchorPosition:
       menuState !== undefined
         ? {
-            top: menuState.location.y,
-            left: menuState.location.x,
-          }
+          top: menuState.location.y,
+          left: menuState.location.x,
+        }
         : undefined,
     handleContextMenu: (e: React.MouseEvent<SVGGElement, MouseEvent>) => {
       e.preventDefault();
@@ -67,7 +67,10 @@ export default function BlockInEditor({
 }): JSX.Element {
   const { anchorPosition, menuOpen, closeMenu, handleContextMenu } = useMenu();
   return (
-    <g className="BlockInEditor" onContextMenu={handleContextMenu}>
+    <g className="BlockInEditor" onContextMenu={(e) => {
+      e.stopPropagation();
+      handleContextMenu(e);
+    }}>
       {block.accept({
         // eslint-disable-next-line react/display-name
         visitFunctionBlock: (block) => (
