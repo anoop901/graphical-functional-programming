@@ -16,6 +16,7 @@ import NegationBlock from "../block/function/NegationBlock";
 import MultiplicationBlock from "../block/function/MultiplicationBlock";
 import NumberInputBlock from "../block/NumberInputBlock";
 import NumberOutputBlock from "../block/NumberOutputBlock";
+import DefinitionBlock from "../block/DefinitionBlock";
 
 type EditorState = IdleState | DragState | DrawingNewConnectionState;
 
@@ -376,40 +377,40 @@ export default function CodeEditor({
       })}
       {editorState.state === "DrawingNewConnectionState" ? (
         hoveredBlockInput !== null &&
-        programLayout.program.blockInputIsUnconnected(
-          hoveredBlockInput.blockId,
-          hoveredBlockInput.inputIndex
-        ) ? (
-          <ConnectionInEditor
-            sourceOutputLocation={getBlockOutputLocation(
-              programLayout.program.getBlock(editorState.blockId),
-              editorState.outputIndex,
-              programLayout.getBlockLocation(editorState.blockId)
-            )}
-            destInputLocation={getBlockInputLocation(
-              programLayout.program.getBlock(hoveredBlockInput.blockId),
-              hoveredBlockInput.inputIndex,
-              programLayout.getBlockLocation(hoveredBlockInput.blockId)
-            )}
-            removeConnection={() => {
-              // do nothing
-            }}
-            preview
-          />
-        ) : (
-          <ConnectionInEditor
-            sourceOutputLocation={getBlockOutputLocation(
-              programLayout.program.getBlock(editorState.blockId),
-              editorState.outputIndex,
-              programLayout.getBlockLocation(editorState.blockId)
-            )}
-            destInputLocation={editorState.mouseLocation}
-            removeConnection={() => {
-              // do nothing
-            }}
-            preview
-          />
-        )
+          programLayout.program.blockInputIsUnconnected(
+            hoveredBlockInput.blockId,
+            hoveredBlockInput.inputIndex
+          ) ? (
+            <ConnectionInEditor
+              sourceOutputLocation={getBlockOutputLocation(
+                programLayout.program.getBlock(editorState.blockId),
+                editorState.outputIndex,
+                programLayout.getBlockLocation(editorState.blockId)
+              )}
+              destInputLocation={getBlockInputLocation(
+                programLayout.program.getBlock(hoveredBlockInput.blockId),
+                hoveredBlockInput.inputIndex,
+                programLayout.getBlockLocation(hoveredBlockInput.blockId)
+              )}
+              removeConnection={() => {
+                // do nothing
+              }}
+              preview
+            />
+          ) : (
+            <ConnectionInEditor
+              sourceOutputLocation={getBlockOutputLocation(
+                programLayout.program.getBlock(editorState.blockId),
+                editorState.outputIndex,
+                programLayout.getBlockLocation(editorState.blockId)
+              )}
+              destInputLocation={editorState.mouseLocation}
+              removeConnection={() => {
+                // do nothing
+              }}
+              preview
+            />
+          )
       ) : null}
       <Menu
         keepMounted
@@ -421,9 +422,9 @@ export default function CodeEditor({
         anchorPosition={
           menuState !== undefined
             ? {
-                top: menuState.location.y,
-                left: menuState.location.x,
-              }
+              top: menuState.location.y,
+              left: menuState.location.x,
+            }
             : undefined
         }
       >
@@ -512,6 +513,21 @@ export default function CodeEditor({
           }}
         >
           Create number output block
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (menuState) {
+              setProgramLayout(
+                programLayout.addBlock(
+                  new DefinitionBlock(),
+                  menuState.location
+                ).newProgramLayout
+              );
+            }
+            closeMenu();
+          }}
+        >
+          Create definition block
         </MenuItem>
       </Menu>
     </svg>

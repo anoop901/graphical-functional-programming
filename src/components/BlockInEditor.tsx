@@ -14,6 +14,7 @@ import NumberOutputBlockInEditor, {
   getNumberOutputBlockPartOffsets,
 } from "./NumberOutputBlockInEditor";
 import { Menu, MenuItem } from "@material-ui/core";
+import DefinitionBlockInEditor, { getDefinitionBlockPartOffsets } from "./DefinitionBlockInEditor";
 
 interface MenuState {
   location: { x: number; y: number };
@@ -106,6 +107,14 @@ export default function BlockInEditor({
             location={location}
           />
         ),
+        // eslint-disable-next-line react/display-name
+        visitDefinitionBlock: () => (
+          <DefinitionBlockInEditor
+            name="foo"
+            onMouseDown={onMouseDown}
+            location={location}
+          />
+        )
       })}
       <Menu
         open={menuOpen}
@@ -137,6 +146,7 @@ function getBlockPartOffsets(block: Block): BlockPartOffsets {
     visitNumberLiteralBlock: getNumberLiteralBlockPartOffsets,
     visitNumberInputBlock: getNumberInputBlockPartOffsets,
     visitNumberOutputBlock: getNumberOutputBlockPartOffsets,
+    visitDefinitionBlock: getDefinitionBlockPartOffsets,
   });
 }
 
