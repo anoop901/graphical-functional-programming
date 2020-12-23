@@ -16,6 +16,7 @@ import NegationBlock from "../block/function/NegationBlock";
 import MultiplicationBlock from "../block/function/MultiplicationBlock";
 import NumberInputBlock from "../block/NumberInputBlock";
 import NumberOutputBlock from "../block/NumberOutputBlock";
+import DefinitionBlock from "../block/DefinitionBlock";
 
 type EditorState = IdleState | DragState | DrawingNewConnectionState;
 
@@ -512,6 +513,21 @@ export default function CodeEditor({
           }}
         >
           Create number output block
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (menuState) {
+              setProgramLayout(
+                programLayout.addBlock(
+                  new DefinitionBlock("foo"),
+                  menuState.location
+                ).newProgramLayout
+              );
+            }
+            closeMenu();
+          }}
+        >
+          Create definition block
         </MenuItem>
       </Menu>
     </svg>
