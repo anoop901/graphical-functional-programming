@@ -14,7 +14,10 @@ import NumberOutputBlockInEditor, {
   getNumberOutputBlockPartOffsets,
 } from "./NumberOutputBlockInEditor";
 import { Menu, MenuItem } from "@material-ui/core";
-import DefinitionBlockInEditor, { getDefinitionBlockPartOffsets } from "./DefinitionBlockInEditor";
+import DefinitionBlockInEditor, {
+  getDefinitionBlockPartOffsets,
+} from "./DefinitionBlockInEditor";
+import DefinitionBlock from "../block/DefinitionBlock";
 
 interface MenuState {
   location: { x: number; y: number };
@@ -31,9 +34,9 @@ function useMenu() {
     anchorPosition:
       menuState !== undefined
         ? {
-          top: menuState.location.y,
-          left: menuState.location.x,
-        }
+            top: menuState.location.y,
+            left: menuState.location.x,
+          }
         : undefined,
     handleContextMenu: (e: React.MouseEvent<SVGGElement, MouseEvent>) => {
       e.preventDefault();
@@ -68,10 +71,13 @@ export default function BlockInEditor({
 }): JSX.Element {
   const { anchorPosition, menuOpen, closeMenu, handleContextMenu } = useMenu();
   return (
-    <g className="BlockInEditor" onContextMenu={(e) => {
-      e.stopPropagation();
-      handleContextMenu(e);
-    }}>
+    <g
+      className="BlockInEditor"
+      onContextMenu={(e) => {
+        e.stopPropagation();
+        handleContextMenu(e);
+      }}
+    >
       {block.accept({
         // eslint-disable-next-line react/display-name
         visitFunctionBlock: (block) => (
@@ -108,13 +114,14 @@ export default function BlockInEditor({
           />
         ),
         // eslint-disable-next-line react/display-name
-        visitDefinitionBlock: () => (
+        visitDefinitionBlock: (block) => (
           <DefinitionBlockInEditor
-            name="foo"
+            block={block}
             onMouseDown={onMouseDown}
             location={location}
+            setBlock={setBlock}
           />
-        )
+        ),
       })}
       <Menu
         open={menuOpen}

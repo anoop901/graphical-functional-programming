@@ -1,32 +1,43 @@
 import * as React from "react";
-import {
-  notchHalfWidth,
-  notchHeight,
-  blockHeight,
-  inputOutputBlockSpikeLength,
-} from "../constants";
+import { notchHalfWidth, notchHeight, blockHeight } from "../constants";
 import buildSvgPath from "../BuildSvgPath";
 import { BlockPartOffsets } from "./BlockInEditor";
+import "./DefinitionBlockInEditor.css";
+import DefinitionBlock from "../block/DefinitionBlock";
 
 const blockWidth = 100;
 
 export default function DefinitionBlockInEditor({
-  name,
+  block,
   onMouseDown,
   location,
+  setBlock,
 }: {
-  name: string;
+  block: DefinitionBlock;
   onMouseDown?: (e: React.MouseEvent) => void;
   location: { x: number; y: number };
+  setBlock: (block: DefinitionBlock) => void;
 }): JSX.Element {
   const strokeColor = `hsl(0,0%,40%)`;
   const fillColor = `hsl(0,0%,60%)`;
 
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const [editing, setEditing] = React.useState(false);
+  function stopEditing() {
+    setEditing(false);
+    if (inputRef.current) {
+      setBlock(new DefinitionBlock(inputRef.current.value));
+    }
+  }
+
   return (
     <g
-      className="NumberOutputBlockInEditor"
+      className="DefinitionBlockInEditor"
       // TODO: Maybe use onDoubleClick to decide whether to recalculate
       onMouseDown={onMouseDown}
+      onDoubleClick={() => {
+        setEditing(true);
+      }}
       transform={`translate(${location.x} ${location.y})`}
     >
       <path
@@ -69,8 +80,27 @@ export default function DefinitionBlockInEditor({
         alignmentBaseline="text-after-edge"
         textAnchor="middle"
       >
-        {name}
+        {block.name}
       </text>
+      {editing ? (
+        <foreignObject x={0} y={0} width={blockWidth} height={blockHeight}>
+          <form
+            onSubmit={(e) => {
+              stopEditing();
+              e.preventDefault();
+            }}
+          >
+            <input
+              type="text"
+              ref={inputRef}
+              autoFocus
+              onBlur={() => {
+                stopEditing();
+              }}
+            ></input>
+          </form>
+        </foreignObject>
+      ) : null}
     </g>
   );
 }

@@ -377,40 +377,40 @@ export default function CodeEditor({
       })}
       {editorState.state === "DrawingNewConnectionState" ? (
         hoveredBlockInput !== null &&
-          programLayout.program.blockInputIsUnconnected(
-            hoveredBlockInput.blockId,
-            hoveredBlockInput.inputIndex
-          ) ? (
-            <ConnectionInEditor
-              sourceOutputLocation={getBlockOutputLocation(
-                programLayout.program.getBlock(editorState.blockId),
-                editorState.outputIndex,
-                programLayout.getBlockLocation(editorState.blockId)
-              )}
-              destInputLocation={getBlockInputLocation(
-                programLayout.program.getBlock(hoveredBlockInput.blockId),
-                hoveredBlockInput.inputIndex,
-                programLayout.getBlockLocation(hoveredBlockInput.blockId)
-              )}
-              removeConnection={() => {
-                // do nothing
-              }}
-              preview
-            />
-          ) : (
-            <ConnectionInEditor
-              sourceOutputLocation={getBlockOutputLocation(
-                programLayout.program.getBlock(editorState.blockId),
-                editorState.outputIndex,
-                programLayout.getBlockLocation(editorState.blockId)
-              )}
-              destInputLocation={editorState.mouseLocation}
-              removeConnection={() => {
-                // do nothing
-              }}
-              preview
-            />
-          )
+        programLayout.program.blockInputIsUnconnected(
+          hoveredBlockInput.blockId,
+          hoveredBlockInput.inputIndex
+        ) ? (
+          <ConnectionInEditor
+            sourceOutputLocation={getBlockOutputLocation(
+              programLayout.program.getBlock(editorState.blockId),
+              editorState.outputIndex,
+              programLayout.getBlockLocation(editorState.blockId)
+            )}
+            destInputLocation={getBlockInputLocation(
+              programLayout.program.getBlock(hoveredBlockInput.blockId),
+              hoveredBlockInput.inputIndex,
+              programLayout.getBlockLocation(hoveredBlockInput.blockId)
+            )}
+            removeConnection={() => {
+              // do nothing
+            }}
+            preview
+          />
+        ) : (
+          <ConnectionInEditor
+            sourceOutputLocation={getBlockOutputLocation(
+              programLayout.program.getBlock(editorState.blockId),
+              editorState.outputIndex,
+              programLayout.getBlockLocation(editorState.blockId)
+            )}
+            destInputLocation={editorState.mouseLocation}
+            removeConnection={() => {
+              // do nothing
+            }}
+            preview
+          />
+        )
       ) : null}
       <Menu
         keepMounted
@@ -422,9 +422,9 @@ export default function CodeEditor({
         anchorPosition={
           menuState !== undefined
             ? {
-              top: menuState.location.y,
-              left: menuState.location.x,
-            }
+                top: menuState.location.y,
+                left: menuState.location.x,
+              }
             : undefined
         }
       >
@@ -519,7 +519,7 @@ export default function CodeEditor({
             if (menuState) {
               setProgramLayout(
                 programLayout.addBlock(
-                  new DefinitionBlock(),
+                  new DefinitionBlock("foo"),
                   menuState.location
                 ).newProgramLayout
               );

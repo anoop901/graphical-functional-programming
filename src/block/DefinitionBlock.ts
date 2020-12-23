@@ -4,7 +4,7 @@ import BlockVisitor from "./BlockVisitor";
 export default class DefinitionBlock extends Block {
   public readonly numInputs = 1;
   public readonly numOutputs = 0;
-  constructor() {
+  constructor(public readonly name: string) {
     super();
   }
 

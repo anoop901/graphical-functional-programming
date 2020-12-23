@@ -50,7 +50,7 @@ export default function IndexPage(): JSX.Element {
     },
     {
       name: "namedefinition",
-      block: new DefinitionBlock(),
+      block: new DefinitionBlock("foo"),
       location: { x: 250, y: 600 },
     },
   ].reduce(
