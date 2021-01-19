@@ -18,6 +18,9 @@ import DefinitionBlockInEditor, {
   getDefinitionBlockPartOffsets,
 } from "./DefinitionBlockInEditor";
 import DefinitionBlock from "../block/DefinitionBlock";
+import ReferenceBlockInEditor, {
+  getReferenceBlockPartOffsets,
+} from "./ReferenceBlockInEditor";
 
 interface MenuState {
   location: { x: number; y: number };
@@ -122,6 +125,14 @@ export default function BlockInEditor({
             setBlock={setBlock}
           />
         ),
+        // eslint-disable-next-line react/display-name
+        visitReferenceBlock: (block) => (
+          <ReferenceBlockInEditor
+            block={block}
+            onMouseDown={onMouseDown}
+            location={location}
+          />
+        ),
       })}
       <Menu
         open={menuOpen}
@@ -154,6 +165,7 @@ function getBlockPartOffsets(block: Block): BlockPartOffsets {
     visitNumberInputBlock: getNumberInputBlockPartOffsets,
     visitNumberOutputBlock: getNumberOutputBlockPartOffsets,
     visitDefinitionBlock: getDefinitionBlockPartOffsets,
+    visitReferenceBlock: getReferenceBlockPartOffsets,
   });
 }
 

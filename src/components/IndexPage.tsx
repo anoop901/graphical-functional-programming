@@ -10,6 +10,7 @@ import NegationBlock from "../block/function/NegationBlock";
 import NumberInputBlock from "../block/NumberInputBlock";
 import NumberOutputBlock from "../block/NumberOutputBlock";
 import DefinitionBlock from "../block/DefinitionBlock";
+import ReferenceBlock from "../block/ReferenceBlock";
 
 export default function IndexPage(): JSX.Element {
   const { programLayout: initProgramLayoutWithoutConnections, blockIds } = [
@@ -52,6 +53,11 @@ export default function IndexPage(): JSX.Element {
       name: "namedefinition",
       block: new DefinitionBlock("foo"),
       location: { x: 250, y: 600 },
+    },
+    {
+      name: "namereference",
+      block: new ReferenceBlock(),
+      location: { x: 400, y: 600 },
     },
   ].reduce(
     ({ programLayout, blockIds }, { name, block, location }) => {
