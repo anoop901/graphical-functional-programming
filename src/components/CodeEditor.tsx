@@ -17,6 +17,7 @@ import MultiplicationBlock from "../block/function/MultiplicationBlock";
 import NumberInputBlock from "../block/NumberInputBlock";
 import NumberOutputBlock from "../block/NumberOutputBlock";
 import DefinitionBlock from "../block/DefinitionBlock";
+import ReferenceBlock from "../block/ReferenceBlock";
 
 type EditorState = IdleState | DragState | DrawingNewConnectionState;
 
@@ -528,6 +529,19 @@ export default function CodeEditor({
           }}
         >
           Create definition block
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (menuState) {
+              setProgramLayout(
+                programLayout.addBlock(new ReferenceBlock(), menuState.location)
+                  .newProgramLayout
+              );
+            }
+            closeMenu();
+          }}
+        >
+          Create reference block
         </MenuItem>
       </Menu>
     </svg>

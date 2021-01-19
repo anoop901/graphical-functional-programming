@@ -3,6 +3,7 @@ import FunctionBlock from "./function/FunctionBlock";
 import NumberInputBlock from "./NumberInputBlock";
 import NumberOutputBlock from "./NumberOutputBlock";
 import DefinitionBlock from "./DefinitionBlock";
+import ReferenceBlock from "./ReferenceBlock";
 
 export default interface BlockVisitor<R> {
   visitNumberLiteralBlock(block: NumberLiteralBlock): R;
@@ -10,4 +11,5 @@ export default interface BlockVisitor<R> {
   visitNumberInputBlock(block: NumberInputBlock): R;
   visitNumberOutputBlock(block: NumberOutputBlock): R;
   visitDefinitionBlock(block: DefinitionBlock): R;
+  visitReferenceBlock(block: ReferenceBlock): R;
 }
