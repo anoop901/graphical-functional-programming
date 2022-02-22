@@ -45,6 +45,7 @@ export default function buildSvgPath(
       } else if (pathPart.type === "curve") {
         return `C${pathPart.anchor1.x} ${pathPart.anchor1.y} ${pathPart.anchor2.x} ${pathPart.anchor2.y} ${pathPart.to.x} ${pathPart.to.y}`;
       }
+      return "";
     }),
     ...(closePath ? ["Z"] : []),
   ].join(" ");

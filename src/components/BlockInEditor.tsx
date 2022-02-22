@@ -17,7 +17,6 @@ import { Menu, MenuItem } from "@material-ui/core";
 import DefinitionBlockInEditor, {
   getDefinitionBlockPartOffsets,
 } from "./DefinitionBlockInEditor";
-import DefinitionBlock from "../block/DefinitionBlock";
 import ReferenceBlockInEditor, {
   getReferenceBlockPartOffsets,
 } from "./ReferenceBlockInEditor";
