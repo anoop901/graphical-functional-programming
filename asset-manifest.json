@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/GraphicalFunctionalProgramming/static/css/main.a68585f2.css",
+    "main.js": "/GraphicalFunctionalProgramming/static/js/main.bea3786c.js",
+    "static/js/787.28f78a0d.chunk.js": "/GraphicalFunctionalProgramming/static/js/787.28f78a0d.chunk.js",
+    "index.html": "/GraphicalFunctionalProgramming/index.html",
+    "main.a68585f2.css.map": "/GraphicalFunctionalProgramming/static/css/main.a68585f2.css.map",
+    "main.bea3786c.js.map": "/GraphicalFunctionalProgramming/static/js/main.bea3786c.js.map",
+    "787.28f78a0d.chunk.js.map": "/GraphicalFunctionalProgramming/static/js/787.28f78a0d.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.a68585f2.css",
+    "static/js/main.bea3786c.js"
+  ]
+}
