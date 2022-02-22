@@ -17,8 +17,5 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Typescript checks
-        run: npx tsc --noEmit
-
-      - name: ESLint checks
-        run: npx eslint '**/*.ts' '**/*.tsx'
+      - name: lint and type checks
+        run: npm run build
