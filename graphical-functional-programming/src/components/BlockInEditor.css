@@ -1,0 +1,10 @@
+.BlockInEditor text {
+  font-family: sans-serif;
+  font-size: 16px;
+  fill: #fff;
+  user-select: none;
+}
+
+.BlockInEditor text.blocklabel {
+  font-size: 12px;
+}
