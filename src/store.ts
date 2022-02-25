@@ -15,3 +15,39 @@ export const store = configureStore({
 export type RootState = ReturnType<typeof store.getState>;
 // Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
 export type AppDispatch = typeof store.dispatch;
+
+/**
+ *  TODO: implement the following actions
+ *
+ *  startDraggingBlock
+ *  dragBlock
+ *  stopDraggingBlock
+ *  startDrawingNewConnection
+ *  updateNewConnection
+ *  stopDrawingNewConnection
+ *  hoverBlockOutput
+ *  unhoverBlockOutput
+ *  hoverBlockInput
+ *  unhoverBlockInput
+ *  setInputValues
+ *  evaluateProgram
+ *  openMenuOnBackground
+ *  closeMenuOnBackground
+ *  openMenuOnBlock
+ *  closeMenuOnBlock
+ *  hoverConnection
+ *  unhoverConnection
+ *  openMenuOnBlock
+ *  closeMenuOnBlock
+ *  startEditingDefinitionBlock
+ *  stopEditingDefinitionBlock
+ *  startEditingNumberInputBlock
+ *  stopEditingNumberInputBlock
+ *  startEditingNumberLiteralBlock
+ *  stopEditingNumberLiteralBlock
+ *  startEditingReferenceBlock
+ *  stopEditingReferenceBlock
+ *  removeBlock
+ *  removeConnection
+ *  create[...]Block
+ */
