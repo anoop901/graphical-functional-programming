@@ -1,7 +1,7 @@
 export type BlockId = string;
 export type ConnectionId = string;
 
-interface Location {
+export interface Location {
   x: number;
   y: number;
 }

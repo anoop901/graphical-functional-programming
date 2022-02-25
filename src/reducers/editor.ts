@@ -1,4 +1,4 @@
-import { BlockId, ConnectionId } from "./types";
+import { BlockId, ConnectionId, Location } from "./types";
 
 export type EditorState =
   | {
