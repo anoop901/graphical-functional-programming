@@ -42,10 +42,13 @@ interface MenuState {
   location: { x: number; y: number };
 }
 
-function useCodeEditor(
-  programLayout: ProgramLayout,
-  setProgramLayout: (programLayout: ProgramLayout) => void
-) {
+export default function CodeEditor({
+  programLayout,
+  setProgramLayout,
+}: {
+  programLayout: ProgramLayout;
+  setProgramLayout: (programLayout: ProgramLayout) => void;
+}): JSX.Element {
   const [editorState, setEditorState] = React.useState<EditorState>({
     state: "IdleState",
   });
@@ -77,7 +80,18 @@ function useCodeEditor(
     setOutputValues(newOutputValues);
   }, [programLayout.program, inputValues]);
 
-  return {
+  const {
+    svgRef,
+    handleCodeEditorMouseMove,
+    handleCodeEditorMouseUp,
+    handleCodeEditorMouseLeave,
+    handleCodeEditorContextMenu,
+    handleBlockInEditorMouseDown,
+    handleBlockInputMouseEnter,
+    handleBlockInputMouseLeave,
+    handleBlockOutputMouseDown,
+    closeMenu,
+  } = {
     closeMenu: () => {
       setMenuState(undefined);
     },
@@ -172,45 +186,8 @@ function useCodeEditor(
     },
 
     svgRef: React.useRef<SVGSVGElement>(null),
-
-    hoveredBlockInput,
-    hoveredBlockOutput,
-    setHoveredBlockOutput,
-    editorState,
-    inputValues,
-    setInputValues,
-    outputValues,
-    menuState,
   };
-}
 
-export default function CodeEditor({
-  programLayout,
-  setProgramLayout,
-}: {
-  programLayout: ProgramLayout;
-  setProgramLayout: (programLayout: ProgramLayout) => void;
-}): JSX.Element {
-  const {
-    svgRef,
-    handleCodeEditorMouseMove,
-    handleCodeEditorMouseUp,
-    handleCodeEditorMouseLeave,
-    handleCodeEditorContextMenu,
-    handleBlockInEditorMouseDown,
-    handleBlockInputMouseEnter,
-    handleBlockInputMouseLeave,
-    handleBlockOutputMouseDown,
-    hoveredBlockInput,
-    hoveredBlockOutput,
-    setHoveredBlockOutput,
-    editorState,
-    inputValues,
-    setInputValues,
-    outputValues,
-    menuState,
-    closeMenu,
-  } = useCodeEditor(programLayout, setProgramLayout);
   return (
     <svg
       ref={svgRef}
