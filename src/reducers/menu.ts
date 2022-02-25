@@ -1,7 +1,6 @@
-import { createReducer } from "@reduxjs/toolkit";
 import { BlockId } from "./types";
 
-type MenuState =
+export type MenuState =
   | {
       open: false;
     }
@@ -10,8 +9,3 @@ type MenuState =
       targetBlock?: BlockId;
       location: { x: number; y: number };
     };
-
-export const menuReducer = createReducer<MenuState>(
-  { open: false },
-  (builder) => builder
-);

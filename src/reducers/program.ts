@@ -1,4 +1,3 @@
-import { createReducer } from "@reduxjs/toolkit";
 import { v4 as uuid } from "uuid";
 import { Block, BlockId, Connection, ConnectionId } from "./types";
 
@@ -7,7 +6,7 @@ export interface ProgramState {
   connections: { [connectionId: ConnectionId]: Connection };
 }
 
-function generateInitialProgramState(): ProgramState {
+export function generateInitialProgramState(): ProgramState {
   const blockIds = {
     literal3: uuid(),
     negative: uuid(),
@@ -109,8 +108,3 @@ function generateInitialProgramState(): ProgramState {
     },
   };
 }
-
-export const programReducer = createReducer<ProgramState>(
-  generateInitialProgramState(),
-  (builder) => builder
-);

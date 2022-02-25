@@ -1,7 +1,6 @@
-import { createReducer } from "@reduxjs/toolkit";
 import { BlockId, ConnectionId } from "./types";
 
-type EditorState =
+export type EditorState =
   | {
       mode: "idle";
       hoveredBlockOutput?: { blockId: BlockId; outputIndex: number };
@@ -19,8 +18,3 @@ type EditorState =
       mouseLocation: Location;
       hoveredBlockInput?: { blockId: BlockId; inputIndex: number };
     };
-
-export const editorReducer = createReducer<EditorState>(
-  { mode: "idle" },
-  (builder) => builder
-);
