@@ -118,10 +118,7 @@ export default function IndexPage(): JSX.Element {
   const [programLayout, setProgramLayout] = React.useState(initProgramLayout);
   return (
     <div className="IndexPage">
-      <CodeEditor
-        programLayout={programLayout}
-        setProgramLayout={setProgramLayout}
-      />
+      <CodeEditor />
     </div>
   );
 }

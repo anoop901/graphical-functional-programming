@@ -18,175 +18,35 @@ import NumberInputBlock from "../block/NumberInputBlock";
 import NumberOutputBlock from "../block/NumberOutputBlock";
 import DefinitionBlock from "../block/DefinitionBlock";
 import ReferenceBlock from "../block/ReferenceBlock";
+import {
+  closeMenu,
+  createNumberLiteralBlock,
+  dragBlock,
+  hoverBlockInput,
+  hoverBlockOutput,
+  makeEditorIdle,
+  openMenuOnBackground,
+  removeConnection,
+  startDraggingBlock,
+  startDrawingNewConnection,
+  stopDraggingBlock,
+  stopDrawingNewConnection,
+  unhoverBlockInput,
+  unhoverBlockOutput,
+  updateNewConnection,
+} from "../reducers/root";
+import { useAppDispatch, useAppSelector } from "../hooks";
+import { blockInputIsUnconnected } from "../reducers/program";
 
-type EditorState = IdleState | DragState | DrawingNewConnectionState;
+export default function CodeEditor(): JSX.Element {
+  // TODO: evaluate program and update displays when the program changes
 
-interface IdleState {
-  state: "IdleState";
-}
+  const dispatch = useAppDispatch();
+  const editor = useAppSelector((root) => root.editor);
+  const program = useAppSelector((root) => root.program);
+  const menu = useAppSelector((root) => root.menu);
 
-interface DragState {
-  state: "DragState";
-  blockId: BlockId;
-  offset: { x: number; y: number };
-}
-
-interface DrawingNewConnectionState {
-  state: "DrawingNewConnectionState";
-  blockId: BlockId;
-  outputIndex: number;
-  mouseLocation: { x: number; y: number };
-}
-
-interface MenuState {
-  location: { x: number; y: number };
-}
-
-export default function CodeEditor({
-  programLayout,
-  setProgramLayout,
-}: {
-  programLayout: ProgramLayout;
-  setProgramLayout: (programLayout: ProgramLayout) => void;
-}): JSX.Element {
-  const [editorState, setEditorState] = React.useState<EditorState>({
-    state: "IdleState",
-  });
-  const [hoveredBlockOutput, setHoveredBlockOutput] = React.useState<{
-    blockId: BlockId;
-    outputIndex: number;
-  } | null>(null);
-  const [hoveredBlockInput, setHoveredBlockInput] = React.useState<{
-    blockId: BlockId;
-    inputIndex: number;
-  } | null>(null);
-  const [menuState, setMenuState] = React.useState<MenuState | undefined>(
-    undefined
-  );
-
-  // Any input value that's not present in the map has a value of 0.
-  const [inputValues, setInputValues] = React.useState<Map<BlockId, number>>(
-    Map()
-  );
-
-  // Null indicates an error in evaluating the output. Any output value that's
-  // not present in the map has a value of null.
-  const [outputValues, setOutputValues] = React.useState<
-    Map<BlockId, number | null>
-  >(Map());
-
-  React.useEffect(() => {
-    const newOutputValues = programLayout.program.evaluate(inputValues);
-    setOutputValues(newOutputValues);
-  }, [programLayout.program, inputValues]);
-
-  const {
-    svgRef,
-    handleCodeEditorMouseMove,
-    handleCodeEditorMouseUp,
-    handleCodeEditorMouseLeave,
-    handleCodeEditorContextMenu,
-    handleBlockInEditorMouseDown,
-    handleBlockInputMouseEnter,
-    handleBlockInputMouseLeave,
-    handleBlockOutputMouseDown,
-    closeMenu,
-  } = {
-    closeMenu: () => {
-      setMenuState(undefined);
-    },
-
-    handleCodeEditorMouseMove: (mouseLocation: { x: number; y: number }) => {
-      if (editorState.state === "DragState") {
-        setProgramLayout(
-          programLayout.moveBlock(editorState.blockId, {
-            x: mouseLocation.x - editorState.offset.x,
-            y: mouseLocation.y - editorState.offset.y,
-          })
-        );
-      }
-      if (editorState.state === "DrawingNewConnectionState") {
-        setEditorState(set(editorState, "mouseLocation", mouseLocation));
-      }
-    },
-
-    handleCodeEditorMouseUp: () => {
-      setEditorState({ state: "IdleState" });
-      if (
-        editorState.state === "DrawingNewConnectionState" &&
-        hoveredBlockInput !== null &&
-        programLayout.program.blockInputIsUnconnected(
-          hoveredBlockInput.blockId,
-          hoveredBlockInput.inputIndex
-        )
-      ) {
-        const newConnection: Connection = {
-          sourceBlockId: editorState.blockId,
-          sourceBlockOutputIndex: editorState.outputIndex,
-          destinationBlockId: hoveredBlockInput.blockId,
-          destinationBlockInputIndex: hoveredBlockInput.inputIndex,
-        };
-        setProgramLayout(programLayout.addConnection(newConnection));
-      }
-    },
-
-    handleCodeEditorMouseLeave: () => {
-      setEditorState({ state: "IdleState" });
-    },
-
-    handleCodeEditorContextMenu: (mouseLocation: { x: number; y: number }) => {
-      if (editorState.state === "IdleState") {
-        setMenuState({
-          location: {
-            x: mouseLocation.x - 2,
-            y: mouseLocation.y - 4,
-          },
-        });
-      }
-    },
-
-    handleBlockInEditorMouseDown: (
-      blockId: BlockId,
-      blockLocation: { x: number; y: number },
-      mouseLocation: { x: number; y: number }
-    ) => {
-      setEditorState({
-        state: "DragState",
-        blockId,
-        offset: {
-          x: mouseLocation.x - blockLocation.x,
-          y: mouseLocation.y - blockLocation.y,
-        },
-      });
-    },
-
-    handleBlockInputMouseEnter: (blockId: BlockId, inputIndex: number) => {
-      setHoveredBlockInput({ blockId, inputIndex });
-    },
-    handleBlockInputMouseLeave: () => {
-      setHoveredBlockInput(null);
-    },
-
-    handleBlockOutputMouseDown: (
-      mouseLocation: {
-        x: number;
-        y: number;
-      },
-      blockId: BlockId,
-      outputIndex: number
-    ) => {
-      if (editorState.state === "IdleState") {
-        setEditorState({
-          state: "DrawingNewConnectionState",
-          blockId,
-          outputIndex,
-          mouseLocation,
-        });
-      }
-    },
-
-    svgRef: React.useRef<SVGSVGElement>(null),
-  };
+  const svgRef = React.useRef<SVGSVGElement>(null);
 
   return (
     <svg
@@ -195,113 +55,85 @@ export default function CodeEditor({
       onMouseMove={(e) => {
         if (svgRef.current !== null) {
           const mouseLocation = mouseEventToSvgPoint(e, svgRef.current);
-          handleCodeEditorMouseMove(mouseLocation);
+          if (editor.mode === "drag") {
+            dispatch(dragBlock({ mouseLocation }));
+          }
+          if (editor.mode === "drawNewConnection") {
+            dispatch(updateNewConnection({ mouseLocation }));
+          }
         }
       }}
       onMouseUp={() => {
-        handleCodeEditorMouseUp();
+        if (editor.mode === "drag") {
+          dispatch(stopDraggingBlock());
+        }
+        if (editor.mode === "drawNewConnection") {
+          dispatch(stopDrawingNewConnection());
+        }
       }}
       onMouseLeave={() => {
-        handleCodeEditorMouseLeave();
+        dispatch(makeEditorIdle());
       }}
       onContextMenu={(e) => {
         e.preventDefault();
-        handleCodeEditorContextMenu({ x: e.clientX, y: e.clientY });
+        dispatch(
+          openMenuOnBackground({
+            mouseLocation: { x: e.clientX, y: e.clientY },
+          })
+        );
       }}
     >
-      {programLayout.program.blocks
-        .map((block, blockId) => {
-          const blockLocation = programLayout.getBlockLocation(blockId);
-          return (
-            <BlockInEditor
-              key={blockId}
-              block={block}
-              inputValue={inputValues.get(blockId, 0)}
-              setInputValue={(value: number) =>
-                setInputValues(set(inputValues, blockId, value))
+      {Object.entries(program.blocks).map(([blockId, block]) => {
+        const blockLocation = block.location;
+        return (
+          <BlockInEditor
+            // TODO: pass relevant information to BlockInEditor, and reimplement BlockInEditor to be able to use it
+            key={blockId}
+            blockId={blockId}
+            onMouseDown={(e) => {
+              if (svgRef.current !== null) {
+                const mouseLocation = mouseEventToSvgPoint(e, svgRef.current);
+                dispatch(startDraggingBlock({ blockId, mouseLocation }));
               }
-              outputValue={outputValues.get(blockId, null)}
-              setBlock={(block) => {
-                setProgramLayout(programLayout.setBlock(blockId, block));
-              }}
-              removeBlock={() => {
-                setProgramLayout(programLayout.removeBlock(blockId));
-              }}
-              location={blockLocation}
-              onMouseDown={(e) => {
-                if (svgRef.current !== null) {
-                  const mouseLocation = mouseEventToSvgPoint(e, svgRef.current);
-                  handleBlockInEditorMouseDown(
-                    blockId,
-                    blockLocation,
-                    mouseLocation
-                  );
-                }
-              }}
-            />
-          );
-        })
-        .toList()}
-      {programLayout.program.connections
-        .map((connection, connectionId) => {
-          const sourceBlock = programLayout.program.getBlock(
-            connection.sourceBlockId
-          );
-          const destBlock = programLayout.program.getBlock(
-            connection.destinationBlockId
-          );
-          const sourceBlockLocation = programLayout.getBlockLocation(
-            connection.sourceBlockId
-          );
-          const destBlockLocation = programLayout.getBlockLocation(
-            connection.destinationBlockId
-          );
-          return (
-            <ConnectionInEditor
-              key={connectionId}
-              sourceOutputLocation={getBlockOutputLocation(
-                sourceBlock,
-                connection.sourceBlockOutputIndex,
-                sourceBlockLocation
-              )}
-              destInputLocation={getBlockInputLocation(
-                destBlock,
-                connection.destinationBlockInputIndex,
-                destBlockLocation
-              )}
-              removeConnection={() => {
-                setProgramLayout(programLayout.removeConnection(connectionId));
-              }}
-            ></ConnectionInEditor>
-          );
-        })
-        .toList()}
-      {programLayout.program.blocks.entrySeq().flatMap(([blockId, block]) => {
-        const location = programLayout.getBlockLocation(blockId);
+            }}
+          />
+        );
+      })}
+      {Object.entries(program.connections).map(([connectionId, connection]) => {
+        const sourceBlock = program.blocks[connection.sourceBlockId];
+        const destBlock = program.blocks[connection.destinationBlockId];
+        return (
+          <ConnectionInEditor
+            key={connectionId}
+            sourceOutputLocation={sourceBlock.location} // TODO: get correct input location based on sourceBlock and connection.sourceBlockOutputIndex
+            destInputLocation={destBlock.location} // TODO: get correct input location based on destBlock and connection.destinationBlockInputIndex
+            removeConnection={() => {
+              dispatch(removeConnection({ connectionId }));
+            }}
+          ></ConnectionInEditor>
+        );
+      })}
+      {Object.entries(program.blocks).flatMap(([blockId, block]) => {
+        const numInputs = 2; // TODO: get correct number of inputs from block
+        const numOutputs = 2; // TODO: get correct number of outputs from block
         return [
-          ...Array.from({ length: block.numInputs }).map((_, inputIndex) => {
-            const inputLocation = getBlockInputLocation(
-              block,
-              inputIndex,
-              location
-            );
+          ...Array.from({ length: numInputs }).map((_, inputIndex) => {
+            const inputLocation = block.location; // TODO: get correct input location based on block and input index
             const visible =
-              editorState.state === "DrawingNewConnectionState" &&
-              programLayout.program.blockInputIsUnconnected(
-                blockId,
-                inputIndex
-              );
+              editor.mode === "drawNewConnection" &&
+              blockInputIsUnconnected(program, blockId, inputIndex);
             const emphasized =
-              hoveredBlockInput !== null &&
-              hoveredBlockInput.blockId === blockId &&
-              hoveredBlockInput.inputIndex === inputIndex;
+              visible &&
+              editor.hoveredBlockInput !== undefined &&
+              editor.hoveredBlockInput.blockId === blockId &&
+              editor.hoveredBlockInput.inputIndex === inputIndex;
             return (
               <circle
                 onMouseEnter={() => {
-                  handleBlockInputMouseEnter(blockId, inputIndex);
+                  dispatch(hoverBlockInput({ blockId, inputIndex }));
                 }}
                 onMouseLeave={() => {
-                  handleBlockInputMouseLeave();
+                  dispatch(unhoverBlockInput());
                 }}
                 key={`${blockId}.in.${inputIndex}`}
                 cx={inputLocation.x}
@@ -311,24 +143,20 @@ export default function CodeEditor({
               />
             );
           }),
-          ...Array.from({ length: block.numOutputs }).map((_, outputIndex) => {
-            const outputLocation = getBlockOutputLocation(
-              block,
-              outputIndex,
-              location
-            );
+          ...Array.from({ length: numOutputs }).map((_, outputIndex) => {
+            const outputLocation = block.location; // TODO: get correct output location based on block and input index
             const visible =
-              editorState.state === "IdleState" &&
-              hoveredBlockOutput !== null &&
-              hoveredBlockOutput.blockId === blockId &&
-              hoveredBlockOutput.outputIndex === outputIndex;
+              editor.mode === "idle" &&
+              editor.hoveredBlockOutput !== undefined &&
+              editor.hoveredBlockOutput.blockId === blockId &&
+              editor.hoveredBlockOutput.outputIndex === outputIndex;
             return (
               <circle
                 onMouseEnter={() => {
-                  setHoveredBlockOutput({ blockId, outputIndex });
+                  dispatch(hoverBlockOutput({ blockId, outputIndex }));
                 }}
                 onMouseLeave={() => {
-                  setHoveredBlockOutput(null);
+                  dispatch(unhoverBlockOutput());
                 }}
                 onMouseDown={(e) => {
                   if (svgRef.current !== null) {
@@ -336,10 +164,12 @@ export default function CodeEditor({
                       e,
                       svgRef.current
                     );
-                    handleBlockOutputMouseDown(
-                      mouseLocation,
-                      blockId,
-                      outputIndex
+                    dispatch(
+                      startDrawingNewConnection({
+                        mouseLocation,
+                        sourceBlockId: blockId,
+                        sourceBlockOutputIndex: outputIndex,
+                      })
                     );
                   }
                 }}
@@ -353,173 +183,71 @@ export default function CodeEditor({
           }),
         ];
       })}
-      {editorState.state === "DrawingNewConnectionState" ? (
-        hoveredBlockInput !== null &&
-        programLayout.program.blockInputIsUnconnected(
-          hoveredBlockInput.blockId,
-          hoveredBlockInput.inputIndex
-        ) ? (
-          <ConnectionInEditor
-            sourceOutputLocation={getBlockOutputLocation(
-              programLayout.program.getBlock(editorState.blockId),
-              editorState.outputIndex,
-              programLayout.getBlockLocation(editorState.blockId)
-            )}
-            destInputLocation={getBlockInputLocation(
-              programLayout.program.getBlock(hoveredBlockInput.blockId),
-              hoveredBlockInput.inputIndex,
-              programLayout.getBlockLocation(hoveredBlockInput.blockId)
-            )}
-            removeConnection={() => {
-              // do nothing
-            }}
-            preview
-          />
-        ) : (
-          <ConnectionInEditor
-            sourceOutputLocation={getBlockOutputLocation(
-              programLayout.program.getBlock(editorState.blockId),
-              editorState.outputIndex,
-              programLayout.getBlockLocation(editorState.blockId)
-            )}
-            destInputLocation={editorState.mouseLocation}
-            removeConnection={() => {
-              // do nothing
-            }}
-            preview
-          />
-        )
-      ) : null}
+      {editor.mode === "drawNewConnection"
+        ? editor.hoveredBlockInput !== undefined &&
+          blockInputIsUnconnected(
+            program,
+            editor.hoveredBlockInput.blockId,
+            editor.hoveredBlockInput.inputIndex
+          )
+          ? (() => {
+              const sourceBlock = program.blocks[editor.sourceBlockId];
+              const destBlock =
+                program.blocks[editor.hoveredBlockInput.blockId];
+              return (
+                <ConnectionInEditor
+                  sourceOutputLocation={sourceBlock.location} // TODO: get correct source output location based on sourceBlock, editor.sourceBlockOutputIndex
+                  destInputLocation={destBlock.location} // TODO: get correct destination input location from destBlock, editor.hoveredBlockInput.inputIndex
+                  removeConnection={() => {
+                    // do nothing
+                  }}
+                  preview
+                />
+              );
+            })()
+          : (() => {
+              const sourceBlock = program.blocks[editor.sourceBlockId];
+              return (
+                <ConnectionInEditor
+                  sourceOutputLocation={sourceBlock.location} // TODO: get correct source output location based on sourceBlock, editor.sourceBlockOutputIndex
+                  destInputLocation={editor.mouseLocation}
+                  removeConnection={() => {
+                    // do nothing
+                  }}
+                  preview
+                />
+              );
+            })()
+        : null}
       <Menu
         keepMounted
-        open={menuState !== undefined}
+        open={menu.open}
         onClose={() => {
-          closeMenu();
+          dispatch(closeMenu());
         }}
         anchorReference="anchorPosition"
         anchorPosition={
-          menuState !== undefined
+          menu.open
             ? {
-                top: menuState.location.y,
-                left: menuState.location.x,
+                top: menu.location.y,
+                left: menu.location.x,
               }
             : undefined
         }
       >
         <MenuItem
           onClick={() => {
-            if (menuState) {
-              setProgramLayout(
-                programLayout.addBlock(
-                  new NumberLiteralBlock(0),
-                  menuState.location
-                ).newProgramLayout
+            if (menu.open) {
+              dispatch(
+                createNumberLiteralBlock({ location: menu.location, value: 0 })
               );
             }
-            closeMenu();
+            dispatch(closeMenu());
           }}
         >
           Create number literal block
         </MenuItem>
-        <MenuItem
-          onClick={() => {
-            if (menuState) {
-              setProgramLayout(
-                programLayout.addBlock(new AdditionBlock(), menuState.location)
-                  .newProgramLayout
-              );
-            }
-            closeMenu();
-          }}
-        >
-          Create addition function block
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            if (menuState) {
-              setProgramLayout(
-                programLayout.addBlock(new NegationBlock(), menuState.location)
-                  .newProgramLayout
-              );
-            }
-            closeMenu();
-          }}
-        >
-          Create negation function block
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            if (menuState) {
-              setProgramLayout(
-                programLayout.addBlock(
-                  new MultiplicationBlock(),
-                  menuState.location
-                ).newProgramLayout
-              );
-            }
-            closeMenu();
-          }}
-        >
-          Create multiplication block
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            if (menuState) {
-              setProgramLayout(
-                programLayout.addBlock(
-                  new NumberInputBlock(),
-                  menuState.location
-                ).newProgramLayout
-              );
-            }
-            closeMenu();
-          }}
-        >
-          Create number input block
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            if (menuState) {
-              setProgramLayout(
-                programLayout.addBlock(
-                  new NumberOutputBlock(),
-                  menuState.location
-                ).newProgramLayout
-              );
-            }
-            closeMenu();
-          }}
-        >
-          Create number output block
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            if (menuState) {
-              setProgramLayout(
-                programLayout.addBlock(
-                  new DefinitionBlock("foo"),
-                  menuState.location
-                ).newProgramLayout
-              );
-            }
-            closeMenu();
-          }}
-        >
-          Create definition block
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            if (menuState) {
-              setProgramLayout(
-                programLayout.addBlock(new ReferenceBlock(), menuState.location)
-                  .newProgramLayout
-              );
-            }
-            closeMenu();
-          }}
-        >
-          Create reference block
-        </MenuItem>
+        {/* TODO: add menu items for each type of block */}
       </Menu>
     </svg>
   );

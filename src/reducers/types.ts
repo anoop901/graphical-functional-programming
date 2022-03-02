@@ -30,7 +30,8 @@ interface NumberLiteralBlock {
 
 interface NumberDisplayBlock {
   blockType: "numberDisplay";
-  value: number;
+  // If not present, indicates an error in evaluating the output.
+  value?: number;
 }
 
 export type Block = (

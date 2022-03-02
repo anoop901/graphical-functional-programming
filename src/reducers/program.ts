@@ -108,3 +108,17 @@ export function generateInitialProgramState(): ProgramState {
     },
   };
 }
+
+export function blockInputIsUnconnected(
+  programState: ProgramState,
+  blockId: BlockId,
+  inputIndex: number
+): boolean {
+  return (
+    Object.entries(programState.connections).filter(
+      ([, connection]) =>
+        connection.destinationBlockId === blockId &&
+        connection.destinationBlockInputIndex === inputIndex
+    ).length === 0
+  );
+}

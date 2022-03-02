@@ -20,6 +20,10 @@ import DefinitionBlockInEditor, {
 import ReferenceBlockInEditor, {
   getReferenceBlockPartOffsets,
 } from "./ReferenceBlockInEditor";
+import { BlockId } from "../reducers/types";
+import { useSelector } from "react-redux";
+import { useAppSelector } from "../hooks";
+import AdditionBlock from "../block/function/AdditionBlock";
 
 interface MenuState {
   location: { x: number; y: number };
@@ -53,25 +57,15 @@ function useMenu() {
 }
 
 export default function BlockInEditor({
-  block,
-  setBlock,
-  removeBlock,
+  blockId,
   onMouseDown,
-  location,
-  inputValue,
-  setInputValue,
-  outputValue,
 }: {
-  block: Block;
-  setBlock: (block: Block) => void;
-  removeBlock: () => void;
+  blockId: BlockId;
   onMouseDown?: (e: React.MouseEvent) => void;
-  location: { x: number; y: number };
-  inputValue: number;
-  setInputValue: (value: number) => void;
-  outputValue: number | null;
 }): JSX.Element {
   const { anchorPosition, menuOpen, closeMenu, handleContextMenu } = useMenu();
+  const block = useAppSelector((root) => root.program.blocks[blockId]);
+
   return (
     <g
       className="BlockInEditor"
@@ -80,74 +74,52 @@ export default function BlockInEditor({
         handleContextMenu(e);
       }}
     >
-      {block.accept({
-        // eslint-disable-next-line react/display-name
-        visitFunctionBlock: (block) => (
-          <FunctionBlockInEditor
-            block={block}
-            onMouseDown={onMouseDown}
-            location={location}
-          />
-        ),
-        // eslint-disable-next-line react/display-name
-        visitNumberLiteralBlock: (block) => (
-          <NumberLiteralBlockInEditor
-            block={block}
-            setBlock={setBlock}
-            onMouseDown={onMouseDown}
-            location={location}
-          />
-        ),
-        // eslint-disable-next-line react/display-name
-        visitNumberInputBlock: () => (
-          <NumberInputBlockInEditor
-            value={inputValue}
-            setValue={setInputValue}
-            onMouseDown={onMouseDown}
-            location={location}
-          />
-        ),
-        // eslint-disable-next-line react/display-name
-        visitNumberOutputBlock: () => (
-          <NumberOutputBlockInEditor
-            value={outputValue}
-            onMouseDown={onMouseDown}
-            location={location}
-          />
-        ),
-        // eslint-disable-next-line react/display-name
-        visitDefinitionBlock: (block) => (
-          <DefinitionBlockInEditor
-            block={block}
-            onMouseDown={onMouseDown}
-            location={location}
-            setBlock={setBlock}
-          />
-        ),
-        // eslint-disable-next-line react/display-name
-        visitReferenceBlock: (block) => (
-          <ReferenceBlockInEditor
-            block={block}
-            onMouseDown={onMouseDown}
-            location={location}
-          />
-        ),
-      })}
-      <Menu
-        open={menuOpen}
-        onClose={closeMenu}
-        anchorPosition={anchorPosition}
-        anchorReference="anchorPosition"
-      >
-        <MenuItem
-          onClick={() => {
-            removeBlock();
-            closeMenu();
-          }}
-        >
-          Remove
-        </MenuItem>
-      </Menu>
+      {((): JSX.Element => {
+        switch (block.blockType) {
+          case "function":
+            return (
+              <FunctionBlockInEditor
+                block={new AdditionBlock()}
+                onMouseDown={onMouseDown}
+                location={block.location}
+              />
+            );
+          case "definition":
+            return (
+              <DefinitionBlockInEditor
+                block={block}
+                onMouseDown={onMouseDown}
+                location={location}
+                setBlock={setBlock}
+              />
+            );
+          case "numberDisplay":
+            return (
+              <NumberOutputBlockInEditor
+                value={outputValue}
+                onMouseDown={onMouseDown}
+                location={location}
+              />
+            );
+          case "numberLiteral":
+            return (
+              <NumberLiteralBlockInEditor
+                block={block}
+                setBlock={setBlock}
+                onMouseDown={onMouseDown}
+                location={location}
+              />
+            );
+          case "reference":
+            return (
+              <ReferenceBlockInEditor
+                block={block}
+                onMouseDown={onMouseDown}
+                location={location}
+              />
+            );
+        }
+      })()}
     </g>
   );
 }
