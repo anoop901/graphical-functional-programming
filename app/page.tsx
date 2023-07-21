@@ -1,3 +1,5 @@
+import ProgramEditor from "@/components/ProgramEditor";
+
 export default function Home() {
   return (
     <div className="flex flex-col h-full justify-around">
@@ -6,7 +8,7 @@ export default function Home() {
           Graphical Functional Programming
         </div>
       </header>
-      <svg className="h-full"></svg>
+      <ProgramEditor />
     </div>
   );
 }
