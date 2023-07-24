@@ -3,9 +3,15 @@ import colors from "tailwindcss/colors";
 import CenteredRect from "./CenteredRect";
 import { useEffect, useRef, useState } from "react";
 import ResizingSvg from "./ResizingSvg";
+import { Program, makeInitialProgram } from "@/model/Program";
 
 export default function ProgramEditor() {
   const center = { x: 0, y: 0 };
+
+  const [program, setProgram] = useState<Program>({ blocks: {} });
+  useEffect(() => {
+    setProgram(makeInitialProgram());
+  }, []);
 
   return (
     <ResizingSvg>
