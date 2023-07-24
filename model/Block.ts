@@ -1,14 +1,20 @@
+import ArrayBlock from "./ArrayBlock";
 import FunctionCallBlock from "./FunctionCallBlock";
 import IntegerLiteralBlock from "./IntegerLiteralBlock";
 import ReferenceBlock from "./ReferenceBlock";
 
-type Block = IntegerLiteralBlock | ReferenceBlock | FunctionCallBlock;
+type Block =
+  | IntegerLiteralBlock
+  | ReferenceBlock
+  | FunctionCallBlock
+  | ArrayBlock;
 export default Block;
 
 interface BlockHandlers<R> {
   handleIntegerLiteralBlock(block: IntegerLiteralBlock): R;
   handleReferenceBlock(block: ReferenceBlock): R;
   handleFunctionCallBlock(block: FunctionCallBlock): R;
+  handleArrayBlock(block: ArrayBlock): R;
 }
 
 function getGenericBlockHandler<R>(
@@ -22,6 +28,8 @@ function getGenericBlockHandler<R>(
         return handlers.handleReferenceBlock(block);
       case "FunctionCallBlock":
         return handlers.handleFunctionCallBlock(block);
+      case "ArrayBlock":
+        return handlers.handleArrayBlock(block);
     }
   };
 }
