@@ -1,9 +1,6 @@
-import IntegerLiteralBlock, {
-  getNumInputsForIntegerLiteralBlock,
-} from "./IntegerLiteralBlock";
-import MinusBlock, { getNumInputsForMinusBlock } from "./MinusBlock";
-import PlusBlock, { getNumInputsForPlusBlock } from "./PlusBlock";
-import TimesBlock from "./TimesBlock";
+import FunctionCallBlock from "./FunctionCallBlock";
+import IntegerLiteralBlock from "./IntegerLiteralBlock";
+import ReferenceBlock from "./ReferenceBlock";
 
-type Block = IntegerLiteralBlock | PlusBlock | MinusBlock | TimesBlock;
+type Block = IntegerLiteralBlock | ReferenceBlock | FunctionCallBlock;
 export default Block;
