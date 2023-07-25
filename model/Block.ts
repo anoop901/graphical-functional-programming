@@ -1,7 +1,13 @@
-import ArrayBlock from "./ArrayBlock";
-import FunctionCallBlock from "./FunctionCallBlock";
-import IntegerLiteralBlock from "./IntegerLiteralBlock";
-import ReferenceBlock from "./ReferenceBlock";
+import ArrayBlock, { getDependenciesOfArrayBlock } from "./ArrayBlock";
+import FunctionCallBlock, {
+  getDependenciesOfFunctionCallBlock,
+} from "./FunctionCallBlock";
+import IntegerLiteralBlock, {
+  getDependenciesOfIntegerLiteralBlock,
+} from "./IntegerLiteralBlock";
+import ReferenceBlock, {
+  getDependenciesOfReferenceBlock,
+} from "./ReferenceBlock";
 
 type Block =
   | IntegerLiteralBlock
@@ -33,3 +39,10 @@ function getGenericBlockHandler<R>(
     }
   };
 }
+
+const getDependenciesOfBlock = getGenericBlockHandler<string[]>({
+  handleIntegerLiteralBlock: getDependenciesOfIntegerLiteralBlock,
+  handleFunctionCallBlock: getDependenciesOfFunctionCallBlock,
+  handleReferenceBlock: getDependenciesOfReferenceBlock,
+  handleArrayBlock: getDependenciesOfArrayBlock,
+});
