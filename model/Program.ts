@@ -27,7 +27,7 @@ export function makeInitialProgram(): Program {
       },
       [blockId5]: {
         type: "ArrayBlock",
-        elementBlockIds: [blockId1, blockId2],
+        elementBlockIds: [blockId1, blockId2, blockId3],
       },
       [blockId6]: {
         type: "FunctionCallBlock",
@@ -55,25 +55,77 @@ export function makeInitialProgram(): Program {
 export function calculateLayout(program: Program): {
   [id: string]: BlockLayout;
 } {
-  const layout: { [id: string]: BlockLayout } = {};
+  const blockDependents: { [id: string]: string } = {};
+  const blockIdsTopologicallySorted = [];
+  const visitedBlockIds = new Set<string>();
 
-  // Caution: This loop can be infinite if there is a circular dependency in the
-  // program. The blocks in the path of the circular dependency will never be
-  // identified as the next block to be laid out because they will always have
-  // dependencies that have not been laid out yet for the same reason. TODO:
-  // check for cycles and if any are found, throw an error before this loop.
-  while (!Object.keys(program.blocks).every((id) => id in layout)) {
+  while (
+    blockIdsTopologicallySorted.length < Object.keys(program.blocks).length
+  ) {
+    let found = false;
     for (const [blockId, block] of Object.entries(program.blocks)) {
-      const dependencyBlockIds = getDependenciesOfBlock(block);
+      const dependencies = getDependenciesOfBlock(block);
       if (
-        !(blockId in layout) &&
-        dependencyBlockIds.every((id) => id in layout)
+        !visitedBlockIds.has(blockId) &&
+        dependencies.every((id) => visitedBlockIds.has(id))
       ) {
-        layout[blockId] = getLayoutCalculator(block)(
-          dependencyBlockIds.map((id) => layout[id])
-        );
+        blockIdsTopologicallySorted.push(blockId);
+        visitedBlockIds.add(blockId);
+        for (const dependencyBlockId of dependencies) {
+          blockDependents[dependencyBlockId] = blockId;
+        }
+        found = true;
       }
     }
+    if (!found) {
+      throw new Error("Circular dependency detected");
+    }
+  }
+
+  const blockSizes: { [id: string]: { width: number; height: number } } = {};
+  const blockOffsets: { [id: string]: { x: number; y: number } } = {};
+
+  for (const blockId of blockIdsTopologicallySorted) {
+    const block = program.blocks[blockId];
+    const dependencyBlockIds = getDependenciesOfBlock(block);
+    if (
+      !(blockId in blockSizes) &&
+      dependencyBlockIds.every((id) => id in blockSizes)
+    ) {
+      const { size, dependenciesOffsets } = getLayoutCalculator(block)(
+        dependencyBlockIds.map((id) => blockSizes[id])
+      );
+      blockSizes[blockId] = size;
+      for (let i = 0; i < dependencyBlockIds.length; i++) {
+        blockOffsets[dependencyBlockIds[i]] = dependenciesOffsets[i];
+      }
+    }
+  }
+
+  blockIdsTopologicallySorted.reverse();
+
+  const blockCenters: { [id: string]: { x: number; y: number } } = {};
+
+  for (const blockId of blockIdsTopologicallySorted) {
+    const dependentId = blockDependents[blockId];
+    if (dependentId != null) {
+      const dependentCenter = blockCenters[dependentId];
+      const offset = blockOffsets[blockId];
+      blockCenters[blockId] = {
+        x: dependentCenter.x + offset.x,
+        y: dependentCenter.y + offset.y,
+      };
+    } else {
+      blockCenters[blockId] = { x: 0, y: 0 };
+    }
+  }
+
+  const layout: { [id: string]: BlockLayout } = {};
+  for (const blockId of Object.keys(program.blocks)) {
+    layout[blockId] = {
+      center: blockCenters[blockId],
+      size: blockSizes[blockId],
+    };
   }
 
   return layout;

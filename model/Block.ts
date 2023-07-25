@@ -48,41 +48,58 @@ export const getDependenciesOfBlock = getGenericBlockHandler<string[]>({
   handleArrayBlock: getDependenciesOfArrayBlock,
 });
 
-// TODO: return value should contain the positions of the dependencies relative
-// to the block, not the position of the block itself
 export const getLayoutCalculator = getGenericBlockHandler<
-  (dependencies: BlockLayout[]) => BlockLayout
+  (dependenciesSizes: { width: number; height: number }[]) => {
+    size: { width: number; height: number };
+    dependenciesOffsets: { x: number; y: number }[];
+  }
 >({
-  handleIntegerLiteralBlock: (block) => (dependencyLayouts) => ({
-    center: { x: 0, y: 0 },
+  handleIntegerLiteralBlock: (block) => (dependencySizes) => ({
     size: { width: 40, height: 20 },
+    dependenciesOffsets: [],
   }),
-  handleFunctionCallBlock: (block) => (dependencyLayouts) => ({
-    center: { x: 0, y: 0 },
-    size: {
-      width:
-        dependencyLayouts
-          .map((layout) => layout.size.width)
-          .reduce((x, y) => x + y) +
-        (dependencyLayouts.length + 1) * 10,
-      height:
-        Math.max(...dependencyLayouts.map((layout) => layout.size.height)) + 20,
-    },
-  }),
-  handleArrayBlock: (block) => (dependencyLayouts) => ({
-    center: { x: 0, y: 0 },
-    size: {
-      width:
-        dependencyLayouts
-          .map((layout) => layout.size.width)
-          .reduce((x, y) => x + y) +
-        (dependencyLayouts.length + 1) * 10,
-      height:
-        Math.max(...dependencyLayouts.map((layout) => layout.size.height)) + 20,
-    },
-  }),
+  handleFunctionCallBlock: (block) => (dependencySizes) => {
+    const width =
+      10 + dependencySizes[0].width + 20 + dependencySizes[1].width + 10;
+    return {
+      size: {
+        width,
+        height:
+          Math.max(dependencySizes[0].height, dependencySizes[1].height) + 20,
+      },
+      dependenciesOffsets: [
+        -width / 2 + 10 + dependencySizes[0].width / 2,
+        -width / 2 +
+          10 +
+          dependencySizes[0].width +
+          20 +
+          dependencySizes[1].width / 2,
+      ].map((x) => ({ x, y: 0 })),
+    };
+  },
+  handleArrayBlock: (block) => (dependencySizes) => {
+    const width =
+      dependencySizes.map((size) => size.width).reduce((x, y) => x + y) +
+      10 * (dependencySizes.length + 1);
+
+    let leftX = -width / 2 + 10;
+    const dependenciesOffsets = [];
+    for (const dependencySize of dependencySizes) {
+      const rightX = leftX + dependencySize.width;
+      const x = (leftX + rightX) / 2;
+      dependenciesOffsets.push({ x, y: 0 });
+      leftX = rightX + 10;
+    }
+    return {
+      size: {
+        width,
+        height: Math.max(...dependencySizes.map((size) => size.height)) + 20,
+      },
+      dependenciesOffsets,
+    };
+  },
   handleReferenceBlock: (block) => (dependencyLayouts) => ({
-    center: { x: 0, y: 0 },
     size: { width: 80, height: 20 },
+    dependenciesOffsets: [],
   }),
 });

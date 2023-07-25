@@ -1,7 +1,7 @@
 "use client";
 import colors from "tailwindcss/colors";
 import CenteredRect from "./CenteredRect";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import ResizingSvg from "./ResizingSvg";
 import { Program, calculateLayout, makeInitialProgram } from "@/model/Program";
 
@@ -13,32 +13,37 @@ export default function ProgramEditor() {
     setProgram(makeInitialProgram());
   }, []);
 
-  useEffect(() => {
-    console.log(program);
-    console.log(calculateLayout(program));
-  }, [program]);
+  const layout = useMemo(() => calculateLayout(program), [program]);
 
   return (
     <ResizingSvg>
-      <CenteredRect
-        x={center.x}
-        y={center.y}
-        width={100}
-        height={25}
-        rx={5}
-        fill={colors.green[200]}
-        stroke={colors.green[500]}
-        strokeWidth={1}
-      />
-      <text
-        x={center.x}
-        y={center.y}
-        fill={colors.green[800]}
-        textAnchor="middle"
-        alignmentBaseline="middle"
-      >
-        foo
-      </text>
+      {Object.entries(layout).map(([blockId, { size, center }]) => {
+        const block = program.blocks[blockId];
+        return (
+          <g key={blockId}>
+            <CenteredRect
+              x={center.x}
+              y={center.y}
+              width={size.width}
+              height={size.height}
+              rx={5}
+              fill="none"
+              stroke={colors.green[500]}
+              strokeWidth={1}
+            />
+            <text
+              x={center.x}
+              y={center.y}
+              fill={colors.green[800]}
+              textAnchor="middle"
+              alignmentBaseline="middle"
+            >
+              {block.type === "IntegerLiteralBlock" ? block.value : null}
+              {block.type === "ReferenceBlock" ? block.name : null}
+            </text>
+          </g>
+        );
+      })}
     </ResizingSvg>
   );
 }
