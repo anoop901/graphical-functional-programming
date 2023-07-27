@@ -41,15 +41,16 @@ export default function ProgramEditor() {
                 y={center.y}
                 width={size.width}
                 height={size.height}
-                rx={5}
+                rx={10}
                 fill={colors.green[100]}
                 stroke={colors.green[500]}
-                strokeWidth={1}
+                strokeWidth={2}
               />
               <text
                 x={center.x}
                 y={center.y}
-                fill={colors.green[800]}
+                fill={colors.green[700]}
+                fontWeight="bold"
                 textAnchor="middle"
                 alignmentBaseline="middle"
               >
