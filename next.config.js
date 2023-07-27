@@ -1,4 +1,16 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {}
+const nextConfig = {
+  basePath: "/graphical-functional-programming",
+  async redirects() {
+    return [
+      {
+        source: "/",
+        destination: "/graphical-functional-programming",
+        basePath: false,
+        permanent: false,
+      },
+    ];
+  },
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;
