@@ -1,3 +1,4 @@
+import layoutIntervalsInSeries from "@/logic/geometry/layoutIntervalsInSeries";
 import ArrayBlock, { getDependenciesOfArrayBlock } from "./ArrayBlock";
 import BlockLayout from "./BlockLayout";
 import FunctionCallBlock, {
@@ -59,43 +60,36 @@ export const getLayoutCalculator = getGenericBlockHandler<
     dependenciesOffsets: [],
   }),
   handleFunctionCallBlock: (block) => (dependencySizes) => {
-    const width =
-      10 + dependencySizes[0].width + 20 + dependencySizes[1].width + 10;
+    const { totalSize: height, intervals } = layoutIntervalsInSeries(
+      [dependencySizes[1].height, dependencySizes[0].height],
+      20,
+      10
+    );
     return {
       size: {
-        width,
-        height:
-          Math.max(dependencySizes[0].height, dependencySizes[1].height) + 20,
+        width: Math.max(...dependencySizes.map(({ width }) => width)) + 20,
+        height,
       },
-      dependenciesOffsets: [
-        -width / 2 + 10 + dependencySizes[0].width / 2,
-        -width / 2 +
-          10 +
-          dependencySizes[0].width +
-          20 +
-          dependencySizes[1].width / 2,
-      ].map((x) => ({ x, y: 0 })),
+      dependenciesOffsets: [intervals[1], intervals[0]].map(({ center }) => ({
+        x: 0,
+        y: center,
+      })),
     };
   },
   handleArrayBlock: (block) => (dependencySizes) => {
-    const width =
-      dependencySizes.map((size) => size.width).reduce((x, y) => x + y) +
-      10 * (dependencySizes.length + 1);
-
-    let leftX = -width / 2 + 10;
-    const dependenciesOffsets = [];
-    for (const dependencySize of dependencySizes) {
-      const rightX = leftX + dependencySize.width;
-      const x = (leftX + rightX) / 2;
-      dependenciesOffsets.push({ x, y: 0 });
-      leftX = rightX + 10;
-    }
+    const { totalSize: width, intervals } = layoutIntervalsInSeries(
+      dependencySizes.map((size) => size.width),
+      10
+    );
     return {
       size: {
         width,
-        height: Math.max(...dependencySizes.map((size) => size.height)) + 20,
+        height: Math.max(...dependencySizes.map(({ height }) => height)) + 20,
       },
-      dependenciesOffsets,
+      dependenciesOffsets: intervals.map(({ center }) => ({
+        x: center,
+        y: 0,
+      })),
     };
   },
   handleReferenceBlock: (block) => (dependencyLayouts) => ({
