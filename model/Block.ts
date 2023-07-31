@@ -10,6 +10,10 @@ import ReferenceBlock, {
   getDependenciesOfReferenceBlock,
 } from "./ReferenceBlock";
 
+export interface BlockBase {
+  nested: boolean;
+}
+
 type Block =
   | IntegerLiteralBlock
   | ReferenceBlock

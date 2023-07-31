@@ -1,4 +1,6 @@
-export default interface FunctionCallBlock {
+import { BlockBase } from "./Block";
+
+export default interface FunctionCallBlock extends BlockBase {
   type: "FunctionCallBlock";
   functionBlockId: string;
   argumentBlockId: string;

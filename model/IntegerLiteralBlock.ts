@@ -1,4 +1,6 @@
-export default interface IntegerLiteralBlock {
+import { BlockBase } from "./Block";
+
+export default interface IntegerLiteralBlock extends BlockBase {
   type: "IntegerLiteralBlock";
   value: number;
 }
