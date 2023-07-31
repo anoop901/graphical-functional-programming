@@ -31,17 +31,12 @@ export default function calculateDefaultLayout(program: Program): {
     for (const descendantId of descendantIds) {
       const block = program.blocks[descendantId];
       const dependencyBlockIds = dependencyGraph[descendantId] ?? [];
-      if (
-        !(descendantId in blockSizes) &&
-        dependencyBlockIds.every((id) => id in blockSizes)
-      ) {
-        const { size, dependenciesOffsets } = getLayoutCalculator(block)(
-          dependencyBlockIds.map((id) => blockSizes[id])
-        );
-        blockSizes[descendantId] = size;
-        for (let i = 0; i < dependencyBlockIds.length; i++) {
-          blockOffsets[dependencyBlockIds[i]] = dependenciesOffsets[i];
-        }
+      const { size, dependenciesOffsets } = getLayoutCalculator(block)(
+        dependencyBlockIds.map((id) => blockSizes[id])
+      );
+      blockSizes[descendantId] = size;
+      for (let i = 0; i < dependencyBlockIds.length; i++) {
+        blockOffsets[dependencyBlockIds[i]] = dependenciesOffsets[i];
       }
     }
 
