@@ -51,13 +51,13 @@ export default function calculateDefaultLayout(program: Program): {
   const blockCenters: { [id: string]: { x: number; y: number } } = {};
 
   const { intervals: clusterIntervals } = layoutIntervalsInSeries(
-    rootNodeIds.map((id) => blockSizes[id].width),
+    rootNodeIds.map((id) => blockSizes[id].height),
     40
   );
   for (let i = 0; i < rootNodeIds.length; i++) {
     const rootNodeId = rootNodeIds[i];
     const clusterInterval = clusterIntervals[i];
-    blockCenters[rootNodeId] = { x: clusterInterval.center, y: 0 };
+    blockCenters[rootNodeId] = { x: 0, y: clusterInterval.center };
   }
 
   for (const blockId of blocksReverseTopologicallySorted) {
