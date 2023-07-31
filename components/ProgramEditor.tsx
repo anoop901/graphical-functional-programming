@@ -3,21 +3,18 @@ import colors from "tailwindcss/colors";
 import CenteredRect from "./CenteredRect";
 import { useEffect, useMemo, useState } from "react";
 import ResizingSvg from "./ResizingSvg";
-import {
-  Program,
-  calculateLayout,
-  makeInitialProgram,
-  programToDependencyGraph,
-} from "@/model/Program";
+import { Program, makeInitialProgram } from "@/model/Program";
 import reverseGraph from "@/logic/graph/reverseGraph";
 import getDescendantsTopologicallySorted from "@/logic/graph/getDescendantsTopologicallySorted";
+import calculateProgramLayout from "@/logic/calculateProgramLayout";
+import programToDependencyGraph from "@/logic/programToDependencyGraph";
 
 export default function ProgramEditor() {
   const [program, setProgram] = useState<Program>({ blocks: {} });
   useEffect(() => {
     setProgram(makeInitialProgram());
   }, []);
-  const layout = useMemo(() => calculateLayout(program), [program]);
+  const layout = useMemo(() => calculateProgramLayout(program), [program]);
   const allBlockIds = Object.keys(program.blocks);
   const dependencyGraph = programToDependencyGraph(program);
   const dependentGraph = reverseGraph(dependencyGraph);
