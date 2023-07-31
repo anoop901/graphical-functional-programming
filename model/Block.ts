@@ -1,6 +1,5 @@
 import layoutIntervalsInSeries from "@/logic/geometry/layoutIntervalsInSeries";
 import ArrayBlock, { getDependenciesOfArrayBlock } from "./ArrayBlock";
-import BlockLayout from "./BlockLayout";
 import FunctionCallBlock, {
   getDependenciesOfFunctionCallBlock,
 } from "./FunctionCallBlock";
