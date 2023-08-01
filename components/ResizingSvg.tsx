@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 
 export default function ResizingSvg({ children }: { children: any }) {
@@ -15,7 +16,7 @@ export default function ResizingSvg({ children }: { children: any }) {
     }
   }, []);
   return (
-    <svg
+    <motion.svg
       viewBox={`${-size.width / 2} ${-size.height / 2} ${size.width} ${
         size.height
       }`}
@@ -23,6 +24,6 @@ export default function ResizingSvg({ children }: { children: any }) {
       className="h-full"
     >
       {children}
-    </svg>
+    </motion.svg>
   );
 }
