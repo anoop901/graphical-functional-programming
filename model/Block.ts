@@ -63,35 +63,48 @@ export const getLayoutCalculator = getGenericBlockHandler<
     dependenciesOffsets: [],
   }),
   handleFunctionCallBlock: (block) => (dependencySizes) => {
+    const functionBlockSize = dependencySizes[0];
+    const argumentBlockSize = dependencySizes[1];
     const { totalSize: height, intervals } = layoutIntervalsInSeries(
-      [dependencySizes[1].height, dependencySizes[0].height],
+      [argumentBlockSize.height, functionBlockSize.height],
       20,
-      10
+      10,
+      false
     );
+    const functionBlockInterval = intervals[1];
+    const argumentBlockInterval = intervals[0];
+    const width = Math.max(...dependencySizes.map(({ width }) => width)) + 20;
     return {
       size: {
-        width: Math.max(...dependencySizes.map(({ width }) => width)) + 20,
+        width,
         height,
       },
-      dependenciesOffsets: [intervals[1], intervals[0]].map(({ center }) => ({
-        x: 0,
-        y: center,
+      dependenciesOffsets: [
+        { blockSize: functionBlockSize, interval: functionBlockInterval },
+        { blockSize: argumentBlockSize, interval: argumentBlockInterval },
+      ].map(({ blockSize, interval }) => ({
+        x: width / 2 - blockSize.width / 2,
+        y: interval.left,
       })),
     };
   },
   handleArrayBlock: (block) => (dependencySizes) => {
     const { totalSize: width, intervals } = layoutIntervalsInSeries(
       dependencySizes.map((size) => size.width),
-      10
+      10,
+      10,
+      false
     );
+    const height =
+      Math.max(...dependencySizes.map(({ height }) => height)) + 20;
     return {
       size: {
         width,
-        height: Math.max(...dependencySizes.map(({ height }) => height)) + 20,
+        height,
       },
-      dependenciesOffsets: intervals.map(({ center }) => ({
-        x: center,
-        y: 0,
+      dependenciesOffsets: intervals.map(({ left }, index) => ({
+        x: left,
+        y: height / 2 - dependencySizes[index].height / 2,
       })),
     };
   },
