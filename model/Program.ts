@@ -21,7 +21,7 @@ export function makeInitialProgram(): Program {
   const blockId14 = window.crypto.randomUUID();
   return {
     blocks: {
-      [blockId1]: { type: "IntegerLiteralBlock", value: 10, nested: true },
+      [blockId1]: { type: "IntegerLiteralBlock", value: 10, nested: false },
       [blockId2]: { type: "IntegerLiteralBlock", value: 20, nested: true },
       [blockId3]: { type: "IntegerLiteralBlock", value: 30, nested: true },
       [blockId4]: {
@@ -31,7 +31,7 @@ export function makeInitialProgram(): Program {
       },
       [blockId5]: {
         type: "ArrayBlock",
-        elementBlockIds: [blockId1, blockId2, blockId3],
+        elementBlockIds: [blockId1, blockId1, blockId2, blockId3],
         nested: true,
       },
       [blockId6]: {
@@ -48,7 +48,8 @@ export function makeInitialProgram(): Program {
       },
       [blockId9]: {
         type: "ArrayBlock",
-        elementBlockIds: [blockId6, blockId7],
+        elementBlockIds: [blockId6, blockId14, blockId7, blockId1],
+
         nested: true,
       },
       [blockId10]: {
