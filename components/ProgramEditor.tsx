@@ -4,33 +4,36 @@ import CenteredRect from "./CenteredRect";
 import { useEffect, useMemo, useState } from "react";
 import ResizingSvg from "./ResizingSvg";
 import { Program, makeInitialProgram } from "@/model/Program";
-import reverseGraph from "@/logic/graph/reverseGraph";
 import getDescendantsTopologicallySorted from "@/logic/graph/getDescendantsTopologicallySorted";
 import calculateProgramLayout from "@/logic/calculateProgramLayout";
-import programToDependencyGraph from "@/logic/programToDependencyGraph";
+import programToNestedDependencyGraph from "@/logic/programToNestedDependencyGraph";
+import findRoots from "@/logic/graph/findRoots";
 
 export default function ProgramEditor() {
   const [program, setProgram] = useState<Program>({ blocks: {} });
   useEffect(() => {
     setProgram(makeInitialProgram());
   }, []);
-  const layout = useMemo(() => calculateProgramLayout(program), [program]);
-  const allBlockIds = Object.keys(program.blocks);
-  const dependencyGraph = programToDependencyGraph(program);
-  const dependentGraph = reverseGraph(dependencyGraph);
-  const rootNodeIds = allBlockIds.filter(
-    (nodeId) => dependentGraph[nodeId].length === 0
+  const { blockLayouts, lineConnectionEndpoints } = useMemo(
+    () => calculateProgramLayout(program),
+    [program]
   );
+  const nestedDependencyGraph = programToNestedDependencyGraph(program);
+  const clusterRootBlockIds = findRoots(nestedDependencyGraph);
 
   return (
     <ResizingSvg>
-      {rootNodeIds
-        .flatMap((rootNodeId) =>
-          getDescendantsTopologicallySorted(dependencyGraph, rootNodeId, true)
+      {clusterRootBlockIds
+        .flatMap((clusterRootBlockId) =>
+          getDescendantsTopologicallySorted(
+            nestedDependencyGraph,
+            clusterRootBlockId,
+            true
+          )
         )
         .map((blockId) => {
           const block = program.blocks[blockId];
-          const { center, size } = layout[blockId];
+          const { center, size } = blockLayouts[blockId];
           return (
             <g key={blockId}>
               <CenteredRect
@@ -57,6 +60,19 @@ export default function ProgramEditor() {
             </g>
           );
         })}
+      {lineConnectionEndpoints.map(({ dependencyBlockId, endpoint }, index) => (
+        <g key={index}>
+          <line
+            x1={blockLayouts[dependencyBlockId].output.x}
+            y1={blockLayouts[dependencyBlockId].output.y}
+            x2={endpoint.x}
+            y2={endpoint.y}
+            stroke={colors.black}
+            strokeWidth={2}
+          />
+          <circle cx={endpoint.x} cy={endpoint.y} r={5} fill={colors.black} />
+        </g>
+      ))}
     </ResizingSvg>
   );
 }

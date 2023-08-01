@@ -1,4 +1,6 @@
-export default interface ReferenceBlock {
+import { BlockBase } from "./Block";
+
+export default interface ReferenceBlock extends BlockBase {
   type: "ReferenceBlock";
   name: string;
 }

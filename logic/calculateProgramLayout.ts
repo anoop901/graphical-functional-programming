@@ -1,85 +1,102 @@
 import BlockLayout from "@/model/BlockLayout";
 import { Program } from "@/model/Program";
-import programToDependencyGraph from "./programToDependencyGraph";
-import reverseGraph from "./graph/reverseGraph";
 import getDescendantsTopologicallySorted from "./graph/getDescendantsTopologicallySorted";
-import { getLayoutCalculator } from "@/model/Block";
+import { getDependenciesOfBlock, getLayoutCalculator } from "@/model/Block";
 import layoutIntervalsInSeries from "./geometry/layoutIntervalsInSeries";
+import programToNestedDependencyGraph from "./programToNestedDependencyGraph";
+import findRoots from "./graph/findRoots";
 
 export default function calculateDefaultLayout(program: Program): {
-  [id: string]: BlockLayout;
+  blockLayouts: {
+    [id: string]: BlockLayout;
+  };
+  lineConnectionEndpoints: {
+    dependencyBlockId: string;
+    endpoint: { x: number; y: number };
+  }[];
 } {
   const allBlockIds = Object.keys(program.blocks);
-  const dependencyGraph = programToDependencyGraph(program);
-  const dependentGraph = reverseGraph(dependencyGraph);
-  const rootNodeIds = allBlockIds.filter(
-    (nodeId) => dependentGraph[nodeId].length === 0
-  );
+  const nestedDependencyGraph = programToNestedDependencyGraph(program);
+  const clusterRootBlockIds = findRoots(nestedDependencyGraph);
 
   const blockSizes: { [id: string]: { width: number; height: number } } = {};
-  // blockOffsets contains the offset of the center of each block relative to
-  // the center of the block that depends on it.
-  const blockOffsets: { [id: string]: { x: number; y: number } } = {};
+  const blockDependenciesOffsets: { [id: string]: { x: number; y: number }[] } =
+    {};
   const blocksReverseTopologicallySorted = [];
 
-  for (const rootNodeId of rootNodeIds) {
-    const descendantIds = getDescendantsTopologicallySorted(
-      dependencyGraph,
-      rootNodeId
+  for (const clusterRootBlockId of clusterRootBlockIds) {
+    const blockIdsInCluster = getDescendantsTopologicallySorted(
+      nestedDependencyGraph,
+      clusterRootBlockId
     );
 
-    for (const descendantId of descendantIds) {
-      const block = program.blocks[descendantId];
-      const dependencyBlockIds = dependencyGraph[descendantId] ?? [];
-      if (
-        !(descendantId in blockSizes) &&
-        dependencyBlockIds.every((id) => id in blockSizes)
-      ) {
-        const { size, dependenciesOffsets } = getLayoutCalculator(block)(
-          dependencyBlockIds.map((id) => blockSizes[id])
-        );
-        blockSizes[descendantId] = size;
-        for (let i = 0; i < dependencyBlockIds.length; i++) {
-          blockOffsets[dependencyBlockIds[i]] = dependenciesOffsets[i];
-        }
-      }
+    for (const blockIdInCluster of blockIdsInCluster) {
+      const block = program.blocks[blockIdInCluster];
+      const dependencyBlockIds = getDependenciesOfBlock(block);
+      const { size, dependenciesOffsets } = getLayoutCalculator(block)(
+        dependencyBlockIds.map((dependencyId) =>
+          program.blocks[dependencyId].nested
+            ? blockSizes[dependencyId]
+            : { width: 10, height: 10 }
+        )
+      );
+      blockSizes[blockIdInCluster] = size;
+      blockDependenciesOffsets[blockIdInCluster] = dependenciesOffsets;
     }
 
-    blocksReverseTopologicallySorted.push(...descendantIds.reverse());
+    blocksReverseTopologicallySorted.push(...blockIdsInCluster.reverse());
   }
 
   const blockCenters: { [id: string]: { x: number; y: number } } = {};
 
   const { intervals: clusterIntervals } = layoutIntervalsInSeries(
-    rootNodeIds.map((id) => blockSizes[id].height),
+    clusterRootBlockIds.map((id) => blockSizes[id].height),
     40
   );
-  for (let i = 0; i < rootNodeIds.length; i++) {
-    const rootNodeId = rootNodeIds[i];
+  for (let i = 0; i < clusterRootBlockIds.length; i++) {
+    const clusterRootBlockId = clusterRootBlockIds[i];
     const clusterInterval = clusterIntervals[i];
-    blockCenters[rootNodeId] = { x: 0, y: clusterInterval.center };
+    blockCenters[clusterRootBlockId] = {
+      x: 0,
+      y: clusterInterval.center,
+    };
   }
 
+  const lineConnectionEndpoints: {
+    dependencyBlockId: string;
+    endpoint: { x: number; y: number };
+  }[] = [];
+
   for (const blockId of blocksReverseTopologicallySorted) {
-    const dependentIds = dependentGraph[blockId];
-    if (dependentIds.length > 0) {
-      const dependentId = dependentIds[0];
-      const dependentCenter = blockCenters[dependentId];
-      const offset = blockOffsets[blockId];
-      blockCenters[blockId] = {
-        x: dependentCenter.x + offset.x,
-        y: dependentCenter.y + offset.y,
+    const dependencyBlockIds = getDependenciesOfBlock(program.blocks[blockId]);
+    for (let i = 0; i < dependencyBlockIds.length; i++) {
+      const dependencyBlockId = dependencyBlockIds[i];
+      const dependencyLocationWithinBlock = {
+        x: blockCenters[blockId].x + blockDependenciesOffsets[blockId][i].x,
+        y: blockCenters[blockId].y + blockDependenciesOffsets[blockId][i].y,
       };
+      if (program.blocks[dependencyBlockId].nested) {
+        blockCenters[dependencyBlockId] = dependencyLocationWithinBlock;
+      } else {
+        lineConnectionEndpoints.push({
+          dependencyBlockId,
+          endpoint: dependencyLocationWithinBlock,
+        });
+      }
     }
   }
 
-  const layout: { [id: string]: BlockLayout } = {};
+  const blockLayouts: { [id: string]: BlockLayout } = {};
   for (const blockId of allBlockIds) {
-    layout[blockId] = {
+    blockLayouts[blockId] = {
       center: blockCenters[blockId],
+      output: {
+        x: blockCenters[blockId].x,
+        y: blockCenters[blockId].y + blockSizes[blockId].height / 2,
+      },
       size: blockSizes[blockId],
     };
   }
 
-  return layout;
+  return { blockLayouts, lineConnectionEndpoints };
 }

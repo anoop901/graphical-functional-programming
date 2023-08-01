@@ -1,4 +1,6 @@
-export default interface ArrayBlock {
+import { BlockBase } from "./Block";
+
+export default interface ArrayBlock extends BlockBase {
   type: "ArrayBlock";
   elementBlockIds: string[];
 }

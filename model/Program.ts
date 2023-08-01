@@ -21,52 +21,63 @@ export function makeInitialProgram(): Program {
   const blockId14 = window.crypto.randomUUID();
   return {
     blocks: {
-      [blockId1]: { type: "IntegerLiteralBlock", value: 10 },
-      [blockId2]: { type: "IntegerLiteralBlock", value: 20 },
-      [blockId3]: { type: "IntegerLiteralBlock", value: 30 },
+      [blockId1]: { type: "IntegerLiteralBlock", value: 10, nested: false },
+      [blockId2]: { type: "IntegerLiteralBlock", value: 20, nested: true },
+      [blockId3]: { type: "IntegerLiteralBlock", value: 30, nested: true },
       [blockId4]: {
         type: "ReferenceBlock",
         name: "plus",
+        nested: true,
       },
       [blockId5]: {
         type: "ArrayBlock",
-        elementBlockIds: [blockId1, blockId2, blockId3],
+        elementBlockIds: [blockId1, blockId1, blockId2, blockId3],
+        nested: true,
       },
       [blockId6]: {
         type: "FunctionCallBlock",
         functionBlockId: blockId4,
         argumentBlockId: blockId5,
+        nested: false,
       },
-      [blockId7]: { type: "IntegerLiteralBlock", value: 40 },
+      [blockId7]: { type: "IntegerLiteralBlock", value: 40, nested: true },
       [blockId8]: {
         type: "ReferenceBlock",
         name: "times",
+        nested: true,
       },
       [blockId9]: {
         type: "ArrayBlock",
-        elementBlockIds: [blockId6, blockId7],
+        elementBlockIds: [blockId6, blockId14, blockId7, blockId1],
+
+        nested: true,
       },
       [blockId10]: {
         type: "FunctionCallBlock",
         functionBlockId: blockId8,
         argumentBlockId: blockId9,
+        nested: false,
       },
       [blockId14]: {
         type: "ReferenceBlock",
         name: "foo",
+        nested: false,
+      },
+      [blockId11]: {
+        type: "IntegerLiteralBlock",
+        value: 50,
+        nested: false,
       },
       [blockId12]: {
         type: "FunctionCallBlock",
         functionBlockId: blockId13,
         argumentBlockId: blockId11,
+        nested: false,
       },
       [blockId13]: {
         type: "ReferenceBlock",
         name: "negative",
-      },
-      [blockId11]: {
-        type: "IntegerLiteralBlock",
-        value: 50,
+        nested: true,
       },
     },
   };
