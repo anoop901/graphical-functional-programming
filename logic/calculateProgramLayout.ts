@@ -14,9 +14,8 @@ export default function calculateDefaultLayout(program: Program): {
   const clusterRootBlockIds = findRoots(nestedDependencyGraph);
 
   const blockSizes: { [id: string]: { width: number; height: number } } = {};
-  // blockOffsets contains the offset of the center of each block relative to
-  // the center of the block that depends on it.
-  const blockOffsets: { [id: string]: { x: number; y: number } } = {};
+  const blockDependenciesOffsets: { [id: string]: { x: number; y: number }[] } =
+    {};
   const blocksReverseTopologicallySorted = [];
 
   for (const clusterRootBlockId of clusterRootBlockIds) {
@@ -36,16 +35,7 @@ export default function calculateDefaultLayout(program: Program): {
         )
       );
       blockSizes[blockIdInCluster] = size;
-      for (let i = 0; i < dependencyBlockIds.length; i++) {
-        if (program.blocks[dependencyBlockIds[i]].nested) {
-          blockOffsets[dependencyBlockIds[i]] = dependenciesOffsets[i];
-        } else {
-          // TODO: Store dependenciesOffsets[i] somewhere so that it can be used
-          // to calculate the location of the end point of the line connection
-          // between the block with id dependencyBlockIds[i] and the block with
-          // id blockIdInCluster.
-        }
-      }
+      blockDependenciesOffsets[blockIdInCluster] = dependenciesOffsets;
     }
 
     blocksReverseTopologicallySorted.push(...blockIdsInCluster.reverse());
@@ -65,12 +55,15 @@ export default function calculateDefaultLayout(program: Program): {
 
   for (const blockId of blocksReverseTopologicallySorted) {
     const dependencyBlockIds = getDependenciesOfBlock(program.blocks[blockId]);
-    for (const dependencyBlockId of dependencyBlockIds) {
+    for (let i = 0; i < dependencyBlockIds.length; i++) {
+      const dependencyBlockId = dependencyBlockIds[i];
       if (program.blocks[dependencyBlockId].nested) {
         blockCenters[dependencyBlockId] = {
-          x: blockCenters[blockId].x + blockOffsets[dependencyBlockId].x,
-          y: blockCenters[blockId].y + blockOffsets[dependencyBlockId].y,
+          x: blockCenters[blockId].x + blockDependenciesOffsets[blockId][i].x,
+          y: blockCenters[blockId].y + blockDependenciesOffsets[blockId][i].y,
         };
+      } else {
+        // TODO: Calculate the location of the end point of the line connection.
       }
     }
   }
