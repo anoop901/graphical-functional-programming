@@ -1,21 +1,17 @@
 import BlockLayout from "@/model/BlockLayout";
 import { Program } from "@/model/Program";
-import reverseGraph from "./graph/reverseGraph";
 import getDescendantsTopologicallySorted from "./graph/getDescendantsTopologicallySorted";
 import { getDependenciesOfBlock, getLayoutCalculator } from "@/model/Block";
 import layoutIntervalsInSeries from "./geometry/layoutIntervalsInSeries";
 import programToNestedDependencyGraph from "./programToNestedDependencyGraph";
+import findRoots from "./graph/findRoots";
 
 export default function calculateDefaultLayout(program: Program): {
   [id: string]: BlockLayout;
 } {
   const allBlockIds = Object.keys(program.blocks);
   const nestedDependencyGraph = programToNestedDependencyGraph(program);
-  const nestedDependentGraph = reverseGraph(nestedDependencyGraph);
-
-  const clusterRootBlockIds = allBlockIds.filter(
-    (blockId) => nestedDependentGraph[blockId].length === 0
-  );
+  const clusterRootBlockIds = findRoots(nestedDependencyGraph);
 
   const blockSizes: { [id: string]: { width: number; height: number } } = {};
   // blockOffsets contains the offset of the center of each block relative to
