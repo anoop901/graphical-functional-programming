@@ -10,7 +10,7 @@ import programToNestedDependencyGraph from "@/logic/programToNestedDependencyGra
 import findRoots from "@/logic/graph/findRoots";
 
 export default function ProgramEditor() {
-  const [program, setProgram] = useState<Program>({ blocks: {} });
+  const [program, setProgram] = useState<Program>({ blocks: {}, layers: [] });
   useEffect(() => {
     setProgram(makeInitialProgram());
   }, []);

@@ -49,17 +49,48 @@ export default function calculateDefaultLayout(program: Program): {
 
   const blockCenters: { [id: string]: { x: number; y: number } } = {};
 
-  const { intervals: clusterIntervals } = layoutIntervalsInSeries(
-    clusterRootBlockIds.map((id) => blockSizes[id].height),
-    40
-  );
+  // const { intervals: clusterIntervals } = layoutIntervalsInSeries(
+  //   clusterRootBlockIds.map((id) => blockSizes[id].height),
+  //   40
+  // );
   for (let i = 0; i < clusterRootBlockIds.length; i++) {
     const clusterRootBlockId = clusterRootBlockIds[i];
-    const clusterInterval = clusterIntervals[i];
+    // const clusterInterval = clusterIntervals[i];
     blockCenters[clusterRootBlockId] = {
       x: 0,
-      y: clusterInterval.center,
+      // y: clusterInterval.center,
+      y: 0,
     };
+  }
+
+  const layerHeights = [];
+  for (const layer of program.layers) {
+    const { intervals: clusterIntervals } = layoutIntervalsInSeries(
+      layer.map((id) => blockSizes[id].width),
+      40
+    );
+    for (let i = 0; i < layer.length; i++) {
+      const clusterRootBlockId = layer[i];
+      const clusterInterval = clusterIntervals[i];
+      blockCenters[clusterRootBlockId] = {
+        x: clusterInterval.center,
+        y: 0,
+      };
+    }
+    layerHeights.push(Math.max(...layer.map((id) => blockSizes[id].height)));
+  }
+
+  const { intervals: layerIntervals } = layoutIntervalsInSeries(
+    layerHeights,
+    80
+  );
+
+  for (let layerIndex = 0; layerIndex < program.layers.length; layerIndex++) {
+    const layer = program.layers[layerIndex];
+    for (let i = 0; i < layer.length; i++) {
+      const clusterRootBlockId = layer[i];
+      blockCenters[clusterRootBlockId].y = layerIntervals[layerIndex].center;
+    }
   }
 
   const lineConnectionEndpoints: {
