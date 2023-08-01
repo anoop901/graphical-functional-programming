@@ -40,7 +40,7 @@ export function makeInitialProgram(): Program {
         argumentBlockId: blockId5,
         nested: false,
       },
-      [blockId7]: { type: "IntegerLiteralBlock", value: 40, nested: false },
+      [blockId7]: { type: "IntegerLiteralBlock", value: 40, nested: true },
       [blockId8]: {
         type: "ReferenceBlock",
         name: "times",
@@ -49,7 +49,7 @@ export function makeInitialProgram(): Program {
       [blockId9]: {
         type: "ArrayBlock",
         elementBlockIds: [blockId6, blockId7],
-        nested: false,
+        nested: true,
       },
       [blockId10]: {
         type: "FunctionCallBlock",
@@ -76,7 +76,7 @@ export function makeInitialProgram(): Program {
       [blockId11]: {
         type: "IntegerLiteralBlock",
         value: 50,
-        nested: true,
+        nested: false,
       },
     },
   };
