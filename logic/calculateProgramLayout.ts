@@ -68,15 +68,14 @@ export default function calculateDefaultLayout(program: Program): {
   }
 
   for (const blockId of blocksReverseTopologicallySorted) {
-    const dependentIds = nestedDependentGraph[blockId];
-    if (dependentIds.length > 0) {
-      const dependentId = dependentIds[0];
-      const dependentCenter = blockCenters[dependentId];
-      const offset = blockOffsets[blockId];
-      blockCenters[blockId] = {
-        x: dependentCenter.x + offset.x,
-        y: dependentCenter.y + offset.y,
-      };
+    const dependencyBlockIds = getDependenciesOfBlock(program.blocks[blockId]);
+    for (const dependencyBlockId of dependencyBlockIds) {
+      if (program.blocks[dependencyBlockId].nested) {
+        blockCenters[dependencyBlockId] = {
+          x: blockCenters[blockId].x + blockOffsets[dependencyBlockId].x,
+          y: blockCenters[blockId].y + blockOffsets[dependencyBlockId].y,
+        };
+      }
     }
   }
 
