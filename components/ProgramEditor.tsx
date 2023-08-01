@@ -7,7 +7,7 @@ import { Program, makeInitialProgram } from "@/model/Program";
 import reverseGraph from "@/logic/graph/reverseGraph";
 import getDescendantsTopologicallySorted from "@/logic/graph/getDescendantsTopologicallySorted";
 import calculateProgramLayout from "@/logic/calculateProgramLayout";
-import programToDependencyGraph from "@/logic/programToDependencyGraph";
+import programToNestedDependencyGraph from "@/logic/programToNestedDependencyGraph";
 
 export default function ProgramEditor() {
   const [program, setProgram] = useState<Program>({ blocks: {} });
@@ -16,7 +16,7 @@ export default function ProgramEditor() {
   }, []);
   const layout = useMemo(() => calculateProgramLayout(program), [program]);
   const allBlockIds = Object.keys(program.blocks);
-  const dependencyGraph = programToDependencyGraph(program);
+  const dependencyGraph = programToNestedDependencyGraph(program);
   const dependentGraph = reverseGraph(dependencyGraph);
   const rootNodeIds = allBlockIds.filter(
     (nodeId) => dependentGraph[nodeId].length === 0
