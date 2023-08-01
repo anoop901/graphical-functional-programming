@@ -6,29 +6,28 @@ import layoutIntervalsInSeries from "./geometry/layoutIntervalsInSeries";
 import programToNestedDependencyGraph from "./programToNestedDependencyGraph";
 import findRoots from "./graph/findRoots";
 
-function topologicallySortClusters(
-  clusterRootBlockIds: string[],
-  nestedDependencyGraph: { [id: string]: string[] }
-): string[][] {
-  const clusters: string[][] = [];
+function getClusters(program: Program): { [id: string]: string[] } {
+  const nestedDependencyGraph = programToNestedDependencyGraph(program);
+  const clusterRootBlockIds = findRoots(nestedDependencyGraph);
+  const clusters: { [id: string]: string[] } = {};
   for (const clusterRootBlockId of clusterRootBlockIds) {
     const clusterBlocks = getDescendantsTopologicallySorted(
       nestedDependencyGraph,
       clusterRootBlockId
     );
-    clusters.push(clusterBlocks);
+    clusters[clusterRootBlockId] = clusterBlocks;
   }
   return clusters;
 }
 
 function calculateBlockSizesAndOffsets(
   program: Program,
-  clustersTopologicallySorted: string[][]
+  clusters: { [id: string]: string[] }
 ) {
   const blockSizes: { [id: string]: { width: number; height: number } } = {};
   const blockDependenciesOffsets: { [id: string]: { x: number; y: number }[] } =
     {};
-  for (const cluster of clustersTopologicallySorted) {
+  for (const cluster of Object.values(clusters)) {
     for (const blockIdInCluster of cluster) {
       const block = program.blocks[blockIdInCluster];
       const dependencyBlockIds = getDependenciesOfBlock(block);
@@ -47,14 +46,14 @@ function calculateBlockSizesAndOffsets(
 }
 
 function calculateClusterRootBlockCenters(
-  clusterRootBlockIds: string[],
   program: Program,
+  clusters: { [id: string]: string[] },
   blockSizes: { [id: string]: { width: number; height: number } }
 ): { [id: string]: { x: number; y: number } } {
   const clusterRootBlockCenters: { [id: string]: { x: number; y: number } } =
     {};
 
-  for (const clusterRootBlockId of clusterRootBlockIds) {
+  for (const clusterRootBlockId of Object.keys(clusters)) {
     clusterRootBlockCenters[clusterRootBlockId] = {
       x: 0,
       y: 0,
@@ -93,8 +92,8 @@ function calculateClusterRootBlockCenters(
 }
 
 function calculateNestedBlockCentersAndLineConnectionEndpoints(
-  clustersTopologicallySorted: string[][],
   program: Program,
+  clusters: { [id: string]: string[] },
   blockDependenciesOffsets: { [id: string]: { x: number; y: number }[] },
   blockCenters: { [id: string]: { x: number; y: number } }
 ): {
@@ -112,7 +111,7 @@ function calculateNestedBlockCentersAndLineConnectionEndpoints(
     endpoint: { x: number; y: number };
   }[] = [];
 
-  for (const cluster of clustersTopologicallySorted) {
+  for (const cluster of Object.values(clusters)) {
     for (const blockId of [...cluster].reverse()) {
       const dependencyBlockIds = getDependenciesOfBlock(
         program.blocks[blockId]
@@ -147,23 +146,18 @@ export default function calculateProgramLayout(program: Program): {
     endpoint: { x: number; y: number };
   }[];
 } {
-  const nestedDependencyGraph = programToNestedDependencyGraph(program);
-  const clusterRootBlockIds = findRoots(nestedDependencyGraph);
-  const clustersTopologicallySorted = topologicallySortClusters(
-    clusterRootBlockIds,
-    nestedDependencyGraph
-  );
+  const clusters = getClusters(program);
   const { blockSizes, blockDependenciesOffsets } =
-    calculateBlockSizesAndOffsets(program, clustersTopologicallySorted);
+    calculateBlockSizesAndOffsets(program, clusters);
   const clusterRootBlockCenters = calculateClusterRootBlockCenters(
-    clusterRootBlockIds,
     program,
+    clusters,
     blockSizes
   );
   const { blockCenters, lineConnectionEndpoints } =
     calculateNestedBlockCentersAndLineConnectionEndpoints(
-      clustersTopologicallySorted,
       program,
+      clusters,
       blockDependenciesOffsets,
       clusterRootBlockCenters // will be mutated; don't use after this call
     );
