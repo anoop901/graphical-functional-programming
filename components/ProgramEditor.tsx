@@ -14,7 +14,10 @@ export default function ProgramEditor() {
   useEffect(() => {
     setProgram(makeInitialProgram());
   }, []);
-  const layout = useMemo(() => calculateProgramLayout(program), [program]);
+  const { blockLayouts, lineConnectionEndpoints } = useMemo(
+    () => calculateProgramLayout(program),
+    [program]
+  );
   const nestedDependencyGraph = programToNestedDependencyGraph(program);
   const clusterRootBlockIds = findRoots(nestedDependencyGraph);
 
@@ -30,7 +33,7 @@ export default function ProgramEditor() {
         )
         .map((blockId) => {
           const block = program.blocks[blockId];
-          const { center, size } = layout[blockId];
+          const { center, size } = blockLayouts[blockId];
           return (
             <g key={blockId}>
               <CenteredRect
@@ -57,6 +60,19 @@ export default function ProgramEditor() {
             </g>
           );
         })}
+      {lineConnectionEndpoints.map(({ dependencyBlockId, endpoint }, index) => (
+        <g key={index}>
+          <line
+            x1={blockLayouts[dependencyBlockId].output.x}
+            y1={blockLayouts[dependencyBlockId].output.y}
+            x2={endpoint.x}
+            y2={endpoint.y}
+            stroke={colors.black}
+            strokeWidth={2}
+          />
+          <circle cx={endpoint.x} cy={endpoint.y} r={5} fill={colors.black} />
+        </g>
+      ))}
     </ResizingSvg>
   );
 }

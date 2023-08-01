@@ -7,7 +7,13 @@ import programToNestedDependencyGraph from "./programToNestedDependencyGraph";
 import findRoots from "./graph/findRoots";
 
 export default function calculateDefaultLayout(program: Program): {
-  [id: string]: BlockLayout;
+  blockLayouts: {
+    [id: string]: BlockLayout;
+  };
+  lineConnectionEndpoints: {
+    dependencyBlockId: string;
+    endpoint: { x: number; y: number };
+  }[];
 } {
   const allBlockIds = Object.keys(program.blocks);
   const nestedDependencyGraph = programToNestedDependencyGraph(program);
@@ -50,31 +56,47 @@ export default function calculateDefaultLayout(program: Program): {
   for (let i = 0; i < clusterRootBlockIds.length; i++) {
     const clusterRootBlockId = clusterRootBlockIds[i];
     const clusterInterval = clusterIntervals[i];
-    blockCenters[clusterRootBlockId] = { x: 0, y: clusterInterval.center };
+    blockCenters[clusterRootBlockId] = {
+      x: 0,
+      y: clusterInterval.center,
+    };
   }
+
+  const lineConnectionEndpoints: {
+    dependencyBlockId: string;
+    endpoint: { x: number; y: number };
+  }[] = [];
 
   for (const blockId of blocksReverseTopologicallySorted) {
     const dependencyBlockIds = getDependenciesOfBlock(program.blocks[blockId]);
     for (let i = 0; i < dependencyBlockIds.length; i++) {
       const dependencyBlockId = dependencyBlockIds[i];
+      const dependencyLocationWithinBlock = {
+        x: blockCenters[blockId].x + blockDependenciesOffsets[blockId][i].x,
+        y: blockCenters[blockId].y + blockDependenciesOffsets[blockId][i].y,
+      };
       if (program.blocks[dependencyBlockId].nested) {
-        blockCenters[dependencyBlockId] = {
-          x: blockCenters[blockId].x + blockDependenciesOffsets[blockId][i].x,
-          y: blockCenters[blockId].y + blockDependenciesOffsets[blockId][i].y,
-        };
+        blockCenters[dependencyBlockId] = dependencyLocationWithinBlock;
       } else {
-        // TODO: Calculate the location of the end point of the line connection.
+        lineConnectionEndpoints.push({
+          dependencyBlockId,
+          endpoint: dependencyLocationWithinBlock,
+        });
       }
     }
   }
 
-  const layout: { [id: string]: BlockLayout } = {};
+  const blockLayouts: { [id: string]: BlockLayout } = {};
   for (const blockId of allBlockIds) {
-    layout[blockId] = {
+    blockLayouts[blockId] = {
       center: blockCenters[blockId],
+      output: {
+        x: blockCenters[blockId].x,
+        y: blockCenters[blockId].y + blockSizes[blockId].height / 2,
+      },
       size: blockSizes[blockId],
     };
   }
 
-  return layout;
+  return { blockLayouts, lineConnectionEndpoints };
 }

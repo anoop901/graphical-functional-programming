@@ -62,6 +62,11 @@ export function makeInitialProgram(): Program {
         name: "foo",
         nested: false,
       },
+      [blockId11]: {
+        type: "IntegerLiteralBlock",
+        value: 50,
+        nested: false,
+      },
       [blockId12]: {
         type: "FunctionCallBlock",
         functionBlockId: blockId13,
@@ -72,11 +77,6 @@ export function makeInitialProgram(): Program {
         type: "ReferenceBlock",
         name: "negative",
         nested: true,
-      },
-      [blockId11]: {
-        type: "IntegerLiteralBlock",
-        value: 50,
-        nested: false,
       },
     },
   };
