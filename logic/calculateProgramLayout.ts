@@ -49,16 +49,10 @@ export default function calculateDefaultLayout(program: Program): {
 
   const blockCenters: { [id: string]: { x: number; y: number } } = {};
 
-  // const { intervals: clusterIntervals } = layoutIntervalsInSeries(
-  //   clusterRootBlockIds.map((id) => blockSizes[id].height),
-  //   40
-  // );
   for (let i = 0; i < clusterRootBlockIds.length; i++) {
     const clusterRootBlockId = clusterRootBlockIds[i];
-    // const clusterInterval = clusterIntervals[i];
     blockCenters[clusterRootBlockId] = {
       x: 0,
-      // y: clusterInterval.center,
       y: 0,
     };
   }
@@ -72,10 +66,7 @@ export default function calculateDefaultLayout(program: Program): {
     for (let i = 0; i < layer.length; i++) {
       const clusterRootBlockId = layer[i];
       const clusterInterval = clusterIntervals[i];
-      blockCenters[clusterRootBlockId] = {
-        x: clusterInterval.center,
-        y: 0,
-      };
+      blockCenters[clusterRootBlockId].x = clusterInterval.center;
     }
     layerHeights.push(Math.max(...layer.map((id) => blockSizes[id].height)));
   }
