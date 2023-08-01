@@ -6,6 +6,8 @@ import layoutIntervalsInSeries from "./geometry/layoutIntervalsInSeries";
 import programToNestedDependencyGraph from "./programToNestedDependencyGraph";
 import findRoots from "./graph/findRoots";
 
+const LINE_CONNECTION_ENDPOINT_SIZE = 10;
+
 function getClusters(program: Program): { [id: string]: string[] } {
   const nestedDependencyGraph = programToNestedDependencyGraph(program);
   const clusterRootBlockIds = findRoots(nestedDependencyGraph);
@@ -35,7 +37,10 @@ function calculateBlockSizesAndOffsets(
         dependencyBlockIds.map((dependencyId) =>
           program.blocks[dependencyId].nested
             ? blockSizes[dependencyId]
-            : { width: 10, height: 10 }
+            : {
+                width: LINE_CONNECTION_ENDPOINT_SIZE,
+                height: LINE_CONNECTION_ENDPOINT_SIZE,
+              }
         )
       );
       blockSizes[blockIdInCluster] = size;
@@ -45,16 +50,16 @@ function calculateBlockSizesAndOffsets(
   return { blockSizes, blockDependenciesOffsets };
 }
 
-function calculateClusterRootBlockCenters(
+function calculateClusterRootBlockTopLefts(
   program: Program,
   clusters: { [id: string]: string[] },
   blockSizes: { [id: string]: { width: number; height: number } }
 ): { [id: string]: { x: number; y: number } } {
-  const clusterRootBlockCenters: { [id: string]: { x: number; y: number } } =
+  const clusterRootBlockTopLefts: { [id: string]: { x: number; y: number } } =
     {};
 
   for (const clusterRootBlockId of Object.keys(clusters)) {
-    clusterRootBlockCenters[clusterRootBlockId] = {
+    clusterRootBlockTopLefts[clusterRootBlockId] = {
       x: 0,
       y: 0,
     };
@@ -69,7 +74,7 @@ function calculateClusterRootBlockCenters(
     for (let i = 0; i < layer.length; i++) {
       const clusterRootBlockId = layer[i];
       const clusterInterval = clusterIntervals[i];
-      clusterRootBlockCenters[clusterRootBlockId].x = clusterInterval.center;
+      clusterRootBlockTopLefts[clusterRootBlockId].x = clusterInterval.left;
     }
     layerHeights.push(Math.max(...layer.map((id) => blockSizes[id].height)));
   }
@@ -83,21 +88,22 @@ function calculateClusterRootBlockCenters(
     const layer = program.layers[layerIndex];
     for (let i = 0; i < layer.length; i++) {
       const clusterRootBlockId = layer[i];
-      clusterRootBlockCenters[clusterRootBlockId].y =
-        layerIntervals[layerIndex].center;
+      clusterRootBlockTopLefts[clusterRootBlockId].y =
+        layerIntervals[layerIndex].right -
+        blockSizes[clusterRootBlockId].height;
     }
   }
 
-  return clusterRootBlockCenters;
+  return clusterRootBlockTopLefts;
 }
 
-function calculateNestedBlockCentersAndLineConnectionEndpoints(
+function calculateNestedBlockTopLeftsAndLineConnectionEndpoints(
   program: Program,
   clusters: { [id: string]: string[] },
   blockDependenciesOffsets: { [id: string]: { x: number; y: number }[] },
-  blockCenters: { [id: string]: { x: number; y: number } }
+  blockTopLefts: { [id: string]: { x: number; y: number } }
 ): {
-  blockCenters: { [id: string]: { x: number; y: number } };
+  blockTopLefts: { [id: string]: { x: number; y: number } };
   lineConnectionEndpoints: {
     dependencyBlockId: string;
     endpoint: {
@@ -119,22 +125,29 @@ function calculateNestedBlockCentersAndLineConnectionEndpoints(
       for (let i = 0; i < dependencyBlockIds.length; i++) {
         const dependencyBlockId = dependencyBlockIds[i];
         const dependencyLocationWithinBlock = {
-          x: blockCenters[blockId].x + blockDependenciesOffsets[blockId][i].x,
-          y: blockCenters[blockId].y + blockDependenciesOffsets[blockId][i].y,
+          x: blockTopLefts[blockId].x + blockDependenciesOffsets[blockId][i].x,
+          y: blockTopLefts[blockId].y + blockDependenciesOffsets[blockId][i].y,
         };
         if (program.blocks[dependencyBlockId].nested) {
-          blockCenters[dependencyBlockId] = dependencyLocationWithinBlock;
+          blockTopLefts[dependencyBlockId] = dependencyLocationWithinBlock;
         } else {
           lineConnectionEndpoints.push({
             dependencyBlockId,
-            endpoint: dependencyLocationWithinBlock,
+            endpoint: {
+              x:
+                dependencyLocationWithinBlock.x +
+                LINE_CONNECTION_ENDPOINT_SIZE / 2,
+              y:
+                dependencyLocationWithinBlock.y +
+                LINE_CONNECTION_ENDPOINT_SIZE / 2,
+            },
           });
         }
       }
     }
   }
 
-  return { blockCenters, lineConnectionEndpoints };
+  return { blockTopLefts, lineConnectionEndpoints };
 }
 
 export default function calculateProgramLayout(program: Program): {
@@ -149,26 +162,30 @@ export default function calculateProgramLayout(program: Program): {
   const clusters = getClusters(program);
   const { blockSizes, blockDependenciesOffsets } =
     calculateBlockSizesAndOffsets(program, clusters);
-  const clusterRootBlockCenters = calculateClusterRootBlockCenters(
+  const clusterRootBlockTopLefts = calculateClusterRootBlockTopLefts(
     program,
     clusters,
     blockSizes
   );
-  const { blockCenters, lineConnectionEndpoints } =
-    calculateNestedBlockCentersAndLineConnectionEndpoints(
+  const { blockTopLefts, lineConnectionEndpoints } =
+    calculateNestedBlockTopLeftsAndLineConnectionEndpoints(
       program,
       clusters,
       blockDependenciesOffsets,
-      clusterRootBlockCenters // will be mutated; don't use after this call
+      clusterRootBlockTopLefts // will be mutated; don't use after this call
     );
 
   const blockLayouts: { [id: string]: BlockLayout } = {};
   for (const blockId of Object.keys(program.blocks)) {
     blockLayouts[blockId] = {
-      center: blockCenters[blockId],
+      topLeft: blockTopLefts[blockId],
+      center: {
+        x: blockTopLefts[blockId].x + blockSizes[blockId].width / 2,
+        y: blockTopLefts[blockId].y + blockSizes[blockId].height / 2,
+      },
       output: {
-        x: blockCenters[blockId].x,
-        y: blockCenters[blockId].y + blockSizes[blockId].height / 2,
+        x: blockTopLefts[blockId].x + blockSizes[blockId].width / 2,
+        y: blockTopLefts[blockId].y + blockSizes[blockId].height,
       },
       size: blockSizes[blockId],
     };

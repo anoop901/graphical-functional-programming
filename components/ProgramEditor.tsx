@@ -1,6 +1,5 @@
 "use client";
 import colors from "tailwindcss/colors";
-import CenteredRect from "./CenteredRect";
 import { useEffect, useMemo, useState } from "react";
 import ResizingSvg from "./ResizingSvg";
 import { Program, makeInitialProgram } from "@/model/Program";
@@ -33,12 +32,12 @@ export default function ProgramEditor() {
         )
         .map((blockId) => {
           const block = program.blocks[blockId];
-          const { center, size } = blockLayouts[blockId];
+          const { topLeft, center, size } = blockLayouts[blockId];
           return (
             <g key={blockId}>
-              <CenteredRect
-                x={center.x}
-                y={center.y}
+              <rect
+                x={topLeft.x}
+                y={topLeft.y}
                 width={size.width}
                 height={size.height}
                 rx={10}

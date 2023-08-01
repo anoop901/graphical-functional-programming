@@ -7,6 +7,10 @@ export default interface BlockLayout {
     x: number;
     y: number;
   };
+  topLeft: {
+    x: number;
+    y: number;
+  };
   size: {
     width: number;
     height: number;
