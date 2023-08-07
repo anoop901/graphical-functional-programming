@@ -106,13 +106,11 @@ export default function ProgramEditor() {
                 x: topLeft.x + dragOffset.x,
                 y: topLeft.y + dragOffset.y,
                 opacity: isDraggingThisBlock ? 0.5 : 1,
-                scale: isDraggingThisBlock ? 1.1 : 1,
               }}
               transition={{
                 // TODO: Reduce code duplication here.
                 x: { duration: isDraggingThisBlock ? 0 : 0.2 },
                 y: { duration: isDraggingThisBlock ? 0 : 0.2 },
-                scale: { type: "spring" },
               }}
               initial={false}
               onMouseDown={() => {
