@@ -161,17 +161,21 @@ export default function ProgramEditor() {
           };
 
           return (
-            <g key={index}>
+            <motion.g
+              key={index}
+              animate={{
+                opacity:
+                  isDraggingDependencyBlock || isDraggingDependentBlock
+                    ? 0.25
+                    : 1,
+              }}
+            >
               <motion.line
                 animate={{
                   x1: draggedStartPoint.x,
                   y1: draggedStartPoint.y,
                   x2: draggedEndPoint.x,
                   y2: draggedEndPoint.y,
-                  opacity:
-                    isDraggingDependencyBlock || isDraggingDependentBlock
-                      ? 0.25
-                      : 1,
                 }}
                 transition={{
                   ...(isDraggingDependencyBlock
@@ -188,7 +192,6 @@ export default function ProgramEditor() {
                 animate={{
                   cx: draggedEndPoint.x,
                   cy: draggedEndPoint.y,
-                  opacity: isDraggingDependentBlock ? 0.5 : 1,
                 }}
                 transition={{
                   ...(isDraggingDependentBlock
@@ -198,7 +201,7 @@ export default function ProgramEditor() {
                 r={5}
                 fill={colors.black}
               />
-            </g>
+            </motion.g>
           );
         }
       )}
