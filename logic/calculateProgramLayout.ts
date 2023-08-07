@@ -97,25 +97,25 @@ function calculateClusterRootBlockTopLefts(
   return clusterRootBlockTopLefts;
 }
 
-function calculateNestedBlockTopLeftsAndLineConnectionEndpoints(
+interface LineConnectionLayout {
+  dependencyBlockId: string;
+  dependentBlockId: string;
+  endpoint: {
+    x: number;
+    y: number;
+  };
+}
+
+function calculateNestedBlockTopLeftsAndLineConnectionLayouts(
   program: Program,
   clusters: { [id: string]: string[] },
   blockDependenciesOffsets: { [id: string]: { x: number; y: number }[] },
   blockTopLefts: { [id: string]: { x: number; y: number } }
 ): {
   blockTopLefts: { [id: string]: { x: number; y: number } };
-  lineConnectionEndpoints: {
-    dependencyBlockId: string;
-    endpoint: {
-      x: number;
-      y: number;
-    };
-  }[];
+  lineConnectionLayouts: LineConnectionLayout[];
 } {
-  const lineConnectionEndpoints: {
-    dependencyBlockId: string;
-    endpoint: { x: number; y: number };
-  }[] = [];
+  const lineConnectionLayouts: LineConnectionLayout[] = [];
 
   for (const cluster of Object.values(clusters)) {
     for (const blockId of [...cluster].reverse()) {
@@ -131,8 +131,9 @@ function calculateNestedBlockTopLeftsAndLineConnectionEndpoints(
         if (program.blocks[dependencyBlockId].nested) {
           blockTopLefts[dependencyBlockId] = dependencyLocationWithinBlock;
         } else {
-          lineConnectionEndpoints.push({
+          lineConnectionLayouts.push({
             dependencyBlockId,
+            dependentBlockId: blockId,
             endpoint: {
               x:
                 dependencyLocationWithinBlock.x +
@@ -147,17 +148,14 @@ function calculateNestedBlockTopLeftsAndLineConnectionEndpoints(
     }
   }
 
-  return { blockTopLefts, lineConnectionEndpoints };
+  return { blockTopLefts, lineConnectionLayouts };
 }
 
 export default function calculateProgramLayout(program: Program): {
   blockLayouts: {
     [id: string]: BlockLayout;
   };
-  lineConnectionEndpoints: {
-    dependencyBlockId: string;
-    endpoint: { x: number; y: number };
-  }[];
+  lineConnectionLayouts: LineConnectionLayout[];
 } {
   const clusters = getClusters(program);
   const { blockSizes, blockDependenciesOffsets } =
@@ -167,8 +165,8 @@ export default function calculateProgramLayout(program: Program): {
     clusters,
     blockSizes
   );
-  const { blockTopLefts, lineConnectionEndpoints } =
-    calculateNestedBlockTopLeftsAndLineConnectionEndpoints(
+  const { blockTopLefts, lineConnectionLayouts } =
+    calculateNestedBlockTopLeftsAndLineConnectionLayouts(
       program,
       clusters,
       blockDependenciesOffsets,
@@ -191,5 +189,5 @@ export default function calculateProgramLayout(program: Program): {
     };
   }
 
-  return { blockLayouts, lineConnectionEndpoints };
+  return { blockLayouts, lineConnectionLayouts };
 }

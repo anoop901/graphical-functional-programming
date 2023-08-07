@@ -14,7 +14,7 @@ export default function ProgramEditor() {
   useEffect(() => {
     setProgram(makeInitialProgram());
   }, []);
-  const { blockLayouts, lineConnectionEndpoints } = useMemo(
+  const { blockLayouts, lineConnectionLayouts } = useMemo(
     () => calculateProgramLayout(program),
     [program]
   );
@@ -109,6 +109,7 @@ export default function ProgramEditor() {
                 scale: isDraggingThisBlock ? 1.1 : 1,
               }}
               transition={{
+                // TODO: Reduce code duplication here.
                 x: { duration: isDraggingThisBlock ? 0 : 0.2 },
                 y: { duration: isDraggingThisBlock ? 0 : 0.2 },
                 scale: { type: "spring" },
@@ -140,25 +141,69 @@ export default function ProgramEditor() {
             </motion.g>
           );
         })}
-      {lineConnectionEndpoints.map(({ dependencyBlockId, endpoint }, index) => (
-        <g key={index}>
-          <motion.line
-            animate={{
-              x1: blockLayouts[dependencyBlockId].output.x,
-              y1: blockLayouts[dependencyBlockId].output.y,
-              x2: endpoint.x,
-              y2: endpoint.y,
-            }}
-            stroke={colors.black}
-            strokeWidth={2}
-          />
-          <motion.circle
-            animate={{ cx: endpoint.x, cy: endpoint.y }}
-            r={5}
-            fill={colors.black}
-          />
-        </g>
-      ))}
+      {lineConnectionLayouts.map(
+        ({ dependencyBlockId, dependentBlockId, endpoint }, index) => {
+          // TODO: Reduce code duplication here. Also, reduce code duplication
+          // between here and the block rendering code.
+          const isDraggingDependencyBlock =
+            blocksNestedInDraggedBlock.has(dependencyBlockId);
+          const isDraggingDependentBlock =
+            blocksNestedInDraggedBlock.has(dependentBlockId);
+          const dependencyDragOffset = isDraggingDependencyBlock
+            ? {
+                x: mousePosition.x - lastMouseDown.x,
+                y: mousePosition.y - lastMouseDown.y,
+              }
+            : { x: 0, y: 0 };
+          const dependentDragOffset = isDraggingDependentBlock
+            ? {
+                x: mousePosition.x - lastMouseDown.x,
+                y: mousePosition.y - lastMouseDown.y,
+              }
+            : { x: 0, y: 0 };
+          return (
+            <g key={index}>
+              <motion.line
+                animate={{
+                  x1:
+                    blockLayouts[dependencyBlockId].output.x +
+                    dependencyDragOffset.x,
+                  y1:
+                    blockLayouts[dependencyBlockId].output.y +
+                    dependencyDragOffset.y,
+                  x2: endpoint.x + dependentDragOffset.x,
+                  y2: endpoint.y + dependentDragOffset.y,
+                  opacity:
+                    isDraggingDependencyBlock || isDraggingDependentBlock
+                      ? 0.25
+                      : 1,
+                }}
+                transition={{
+                  x1: { duration: isDraggingDependencyBlock ? 0 : 0.2 },
+                  y1: { duration: isDraggingDependencyBlock ? 0 : 0.2 },
+                  x2: { duration: isDraggingDependentBlock ? 0 : 0.2 },
+                  y2: { duration: isDraggingDependentBlock ? 0 : 0.2 },
+                }}
+                stroke={colors.black}
+                strokeWidth={2}
+              />
+              <motion.circle
+                animate={{
+                  cx: endpoint.x + dependentDragOffset.x,
+                  cy: endpoint.y + dependentDragOffset.y,
+                  opacity: isDraggingDependentBlock ? 0.5 : 1,
+                }}
+                transition={{
+                  cx: { duration: isDraggingDependentBlock ? 0 : 0.2 },
+                  cy: { duration: isDraggingDependentBlock ? 0 : 0.2 },
+                }}
+                r={5}
+                fill={colors.black}
+              />
+            </g>
+          );
+        }
+      )}
     </ResizingSvg>
   );
 }
