@@ -1,3 +1,10 @@
+export interface Interval {
+  left: number;
+  center: number;
+  right: number;
+  size: number;
+}
+
 /**
  * Given a series of intervals, lay them out in a row, with a given gap between
  * each interval. If padding is specified, the first and last intervals will be
@@ -14,7 +21,7 @@ export default function layoutIntervalsInSeries(
   padding: number | undefined = undefined,
   center: boolean = true
 ): {
-  intervals: { left: number; center: number; right: number; size: number }[];
+  intervals: Interval[];
   totalSize: number;
 } {
   if (padding == null) {

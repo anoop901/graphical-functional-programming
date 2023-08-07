@@ -14,7 +14,7 @@ export default function ProgramEditor() {
   useEffect(() => {
     setProgram(makeInitialProgram());
   }, []);
-  const { blockLayouts, lineConnectionLayouts } = useMemo(
+  const { blockLayouts, lineConnectionLayouts, layerIntervals } = useMemo(
     () => calculateProgramLayout(program),
     [program]
   );
@@ -86,6 +86,19 @@ export default function ProgramEditor() {
         }
       }}
     >
+      <g>
+        {/* This is to temporarily visualize the layer intervals, for debugging. */}
+        {layerIntervals.map(({ left, size }, index) => (
+          <rect
+            key={index}
+            x={-300}
+            width={600}
+            y={left}
+            height={size}
+            opacity={0.1}
+          />
+        ))}
+      </g>
       {clusterRootBlockIds
         .flatMap((clusterRootBlockId) =>
           getDescendantsTopologicallySorted(

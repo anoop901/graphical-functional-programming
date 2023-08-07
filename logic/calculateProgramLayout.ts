@@ -2,7 +2,9 @@ import BlockLayout from "@/model/BlockLayout";
 import { Program } from "@/model/Program";
 import getDescendantsTopologicallySorted from "./graph/getDescendantsTopologicallySorted";
 import { getDependenciesOfBlock, getLayoutCalculator } from "@/model/Block";
-import layoutIntervalsInSeries from "./geometry/layoutIntervalsInSeries";
+import layoutIntervalsInSeries, {
+  Interval,
+} from "./geometry/layoutIntervalsInSeries";
 import programToNestedDependencyGraph from "./programToNestedDependencyGraph";
 import findRoots from "./graph/findRoots";
 
@@ -50,11 +52,14 @@ function calculateBlockSizesAndOffsets(
   return { blockSizes, blockDependenciesOffsets };
 }
 
-function calculateClusterRootBlockTopLefts(
+function calculateClusterRootBlockTopLeftsAndLayerIntervals(
   program: Program,
   clusters: { [id: string]: string[] },
   blockSizes: { [id: string]: { width: number; height: number } }
-): { [id: string]: { x: number; y: number } } {
+): {
+  clusterRootBlockTopLefts: { [id: string]: { x: number; y: number } };
+  layerIntervals: Interval[];
+} {
   const clusterRootBlockTopLefts: { [id: string]: { x: number; y: number } } =
     {};
 
@@ -94,7 +99,7 @@ function calculateClusterRootBlockTopLefts(
     }
   }
 
-  return clusterRootBlockTopLefts;
+  return { clusterRootBlockTopLefts, layerIntervals };
 }
 
 interface LineConnectionLayout {
@@ -156,15 +161,17 @@ export default function calculateProgramLayout(program: Program): {
     [id: string]: BlockLayout;
   };
   lineConnectionLayouts: LineConnectionLayout[];
+  layerIntervals: Interval[];
 } {
   const clusters = getClusters(program);
   const { blockSizes, blockDependenciesOffsets } =
     calculateBlockSizesAndOffsets(program, clusters);
-  const clusterRootBlockTopLefts = calculateClusterRootBlockTopLefts(
-    program,
-    clusters,
-    blockSizes
-  );
+  const { clusterRootBlockTopLefts, layerIntervals } =
+    calculateClusterRootBlockTopLeftsAndLayerIntervals(
+      program,
+      clusters,
+      blockSizes
+    );
   const { blockTopLefts, lineConnectionLayouts } =
     calculateNestedBlockTopLeftsAndLineConnectionLayouts(
       program,
@@ -189,5 +196,5 @@ export default function calculateProgramLayout(program: Program): {
     };
   }
 
-  return { blockLayouts, lineConnectionLayouts };
+  return { blockLayouts, lineConnectionLayouts, layerIntervals };
 }
