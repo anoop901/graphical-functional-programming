@@ -1,8 +1,13 @@
-import { motion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { RefObject, SVGProps, useEffect, useState } from "react";
 
-export default function ResizingSvg({ children }: { children: any }) {
-  const svgRef = useRef<SVGSVGElement>(null);
+export default function ResizingSvg({
+  children,
+  svgRef,
+  ...rest
+}: {
+  children: any;
+  svgRef: RefObject<SVGSVGElement>;
+} & SVGProps<SVGSVGElement>) {
   const [size, setSize] = useState({ width: 0, height: 0 });
   useEffect(() => {
     if (svgRef.current) {
@@ -16,14 +21,15 @@ export default function ResizingSvg({ children }: { children: any }) {
     }
   }, []);
   return (
-    <motion.svg
+    <svg
       viewBox={`${-size.width / 2} ${-size.height / 2} ${size.width} ${
         size.height
       }`}
       ref={svgRef}
       className="h-full"
+      {...rest}
     >
       {children}
-    </motion.svg>
+    </svg>
   );
 }
