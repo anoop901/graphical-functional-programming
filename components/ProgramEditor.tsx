@@ -40,6 +40,11 @@ export default function ProgramEditor() {
     y: number;
   }>({ x: 0, y: 0 });
 
+  const dragOffset = {
+    x: mousePosition.x - lastMouseDown.x,
+    y: mousePosition.y - lastMouseDown.y,
+  };
+
   const blocksNestedInDraggedBlock = useMemo(() => {
     if (currentlyDraggedBlockId == null) {
       return new Set();
@@ -93,24 +98,18 @@ export default function ProgramEditor() {
           const block = program.blocks[blockId];
           const { topLeft, size } = blockLayouts[blockId];
           const isDraggingThisBlock = blocksNestedInDraggedBlock.has(blockId);
-          const dragOffset = isDraggingThisBlock
-            ? {
-                x: mousePosition.x - lastMouseDown.x,
-                y: mousePosition.y - lastMouseDown.y,
-              }
-            : { x: 0, y: 0 };
           return (
             <motion.g
               key={blockId}
               animate={{
-                x: topLeft.x + dragOffset.x,
-                y: topLeft.y + dragOffset.y,
+                x: topLeft.x + (isDraggingThisBlock ? dragOffset.x : 0),
+                y: topLeft.y + (isDraggingThisBlock ? dragOffset.y : 0),
                 opacity: isDraggingThisBlock ? 0.5 : 1,
               }}
               transition={{
-                // TODO: Reduce code duplication here.
-                x: { duration: isDraggingThisBlock ? 0 : 0.2 },
-                y: { duration: isDraggingThisBlock ? 0 : 0.2 },
+                ...(isDraggingThisBlock
+                  ? { x: { duration: 0 }, y: { duration: 0 } }
+                  : { x: { type: "tween" }, y: { type: "tween" } }),
               }}
               initial={false}
               onMouseDown={() => {
@@ -141,59 +140,60 @@ export default function ProgramEditor() {
         })}
       {lineConnectionLayouts.map(
         ({ dependencyBlockId, dependentBlockId, endpoint }, index) => {
-          // TODO: Reduce code duplication here. Also, reduce code duplication
-          // between here and the block rendering code.
           const isDraggingDependencyBlock =
             blocksNestedInDraggedBlock.has(dependencyBlockId);
           const isDraggingDependentBlock =
             blocksNestedInDraggedBlock.has(dependentBlockId);
-          const dependencyDragOffset = isDraggingDependencyBlock
-            ? {
-                x: mousePosition.x - lastMouseDown.x,
-                y: mousePosition.y - lastMouseDown.y,
-              }
-            : { x: 0, y: 0 };
-          const dependentDragOffset = isDraggingDependentBlock
-            ? {
-                x: mousePosition.x - lastMouseDown.x,
-                y: mousePosition.y - lastMouseDown.y,
-              }
-            : { x: 0, y: 0 };
+
+          const startPoint = blockLayouts[dependencyBlockId].output;
+
+          // Since the user might be dragging one of the blocks connected by
+          // this line, we may need to adjust the line's start and end points.
+          // We do this by adding the drag offset to the start and end points
+          // if the corresponding block is being dragged.
+          const draggedStartPoint = {
+            x: startPoint.x + (isDraggingDependencyBlock ? dragOffset.x : 0),
+            y: startPoint.y + (isDraggingDependencyBlock ? dragOffset.y : 0),
+          };
+          const draggedEndPoint = {
+            x: endpoint.x + (isDraggingDependentBlock ? dragOffset.x : 0),
+            y: endpoint.y + (isDraggingDependentBlock ? dragOffset.y : 0),
+          };
+
           return (
             <g key={index}>
               <motion.line
                 animate={{
-                  x1:
-                    blockLayouts[dependencyBlockId].output.x +
-                    dependencyDragOffset.x,
-                  y1:
-                    blockLayouts[dependencyBlockId].output.y +
-                    dependencyDragOffset.y,
-                  x2: endpoint.x + dependentDragOffset.x,
-                  y2: endpoint.y + dependentDragOffset.y,
+                  x1: draggedStartPoint.x,
+                  y1: draggedStartPoint.y,
+                  x2: draggedEndPoint.x,
+                  y2: draggedEndPoint.y,
                   opacity:
                     isDraggingDependencyBlock || isDraggingDependentBlock
                       ? 0.25
                       : 1,
                 }}
                 transition={{
-                  x1: { duration: isDraggingDependencyBlock ? 0 : 0.2 },
-                  y1: { duration: isDraggingDependencyBlock ? 0 : 0.2 },
-                  x2: { duration: isDraggingDependentBlock ? 0 : 0.2 },
-                  y2: { duration: isDraggingDependentBlock ? 0 : 0.2 },
+                  ...(isDraggingDependencyBlock
+                    ? { x1: { duration: 0 }, y1: { duration: 0 } }
+                    : { x1: "easeOut", y1: "easeOut" }),
+                  ...(isDraggingDependentBlock
+                    ? { x2: { duration: 0 }, y2: { duration: 0 } }
+                    : { x2: "easeOut", y2: "easeOut" }),
                 }}
                 stroke={colors.black}
                 strokeWidth={2}
               />
               <motion.circle
                 animate={{
-                  cx: endpoint.x + dependentDragOffset.x,
-                  cy: endpoint.y + dependentDragOffset.y,
+                  cx: draggedEndPoint.x,
+                  cy: draggedEndPoint.y,
                   opacity: isDraggingDependentBlock ? 0.5 : 1,
                 }}
                 transition={{
-                  cx: { duration: isDraggingDependentBlock ? 0 : 0.2 },
-                  cy: { duration: isDraggingDependentBlock ? 0 : 0.2 },
+                  ...(isDraggingDependentBlock
+                    ? { cx: { duration: 0 }, cy: { duration: 0 } }
+                    : { cx: "easeOut", cy: "easeOut" }),
                 }}
                 r={5}
                 fill={colors.black}
