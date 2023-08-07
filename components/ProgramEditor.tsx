@@ -40,6 +40,19 @@ export default function ProgramEditor() {
     y: number;
   }>({ x: 0, y: 0 });
 
+  const blocksNestedInDraggedBlock = useMemo(() => {
+    if (currentlyDraggedBlockId == null) {
+      return new Set();
+    } else {
+      return new Set(
+        getDescendantsTopologicallySorted(
+          nestedDependencyGraph,
+          currentlyDraggedBlockId
+        )
+      );
+    }
+  }, [currentlyDraggedBlockId, nestedDependencyGraph]);
+
   const svgRef = useRef<SVGSVGElement>(null);
 
   return (
@@ -79,7 +92,7 @@ export default function ProgramEditor() {
         .map((blockId) => {
           const block = program.blocks[blockId];
           const { topLeft, size } = blockLayouts[blockId];
-          const isDraggingThisBlock = currentlyDraggedBlockId === blockId;
+          const isDraggingThisBlock = blocksNestedInDraggedBlock.has(blockId);
           const dragOffset = isDraggingThisBlock
             ? {
                 x: mousePosition.x - lastMouseDown.x,
