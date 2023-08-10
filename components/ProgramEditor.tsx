@@ -9,6 +9,9 @@ import programToNestedDependencyGraph from "@/logic/programToNestedDependencyGra
 import findRoots from "@/logic/graph/findRoots";
 import { motion } from "framer-motion";
 
+const LAYER_MARGIN = 20;
+const CLUSTER_MARGIN = 30;
+
 export default function ProgramEditor() {
   const [program, setProgram] = useState<Program>({ blocks: {}, layers: [] });
   useEffect(() => {
@@ -58,6 +61,50 @@ export default function ProgramEditor() {
     }
   }, [currentlyDraggedBlockId, nestedDependencyGraph]);
 
+  type InsertionLocation =
+    | {
+        type: "betweenLayers";
+        layerIndex: number;
+      }
+    | {
+        type: "betweenClustersWithinLayer";
+        layerIndex: number;
+        index: number;
+      };
+
+  const insertionLocation: InsertionLocation = useMemo(() => {
+    const layerIndex = layerIntervals.findIndex(
+      ({ left, right }) =>
+        left - LAYER_MARGIN <= mousePosition.y &&
+        mousePosition.y <= right + LAYER_MARGIN
+    );
+    if (layerIndex < 0) {
+      const layerIndex = layerIntervals.findIndex(
+        ({ left }) => mousePosition.y < left - LAYER_MARGIN
+      );
+      return {
+        type: "betweenLayers",
+        layerIndex: layerIndex < 0 ? program.layers.length : layerIndex,
+      };
+    }
+    const layer = program.layers[layerIndex];
+    const blockIndex = layer.findIndex((blockId) => {
+      return blockLayouts[blockId].center.x > mousePosition.x;
+    });
+    if (blockIndex < 0) {
+      return {
+        type: "betweenClustersWithinLayer",
+        layerIndex: layerIndex,
+        index: layer.length,
+      };
+    }
+    return {
+      type: "betweenClustersWithinLayer",
+      layerIndex: layerIndex,
+      index: blockIndex,
+    };
+  }, [program.layers, blockLayouts, layerIntervals, mousePosition]);
+
   const svgRef = useRef<SVGSVGElement>(null);
 
   return (
@@ -86,19 +133,78 @@ export default function ProgramEditor() {
         }
       }}
     >
-      <g>
-        {/* This is to temporarily visualize the layer intervals, for debugging. */}
-        {layerIntervals.map(({ left, size }, index) => (
-          <rect
-            key={index}
-            x={-300}
-            width={600}
-            y={left}
-            height={size}
-            opacity={0.1}
-          />
-        ))}
-      </g>
+      {(() => {
+        if (insertionLocation.type === "betweenClustersWithinLayer") {
+          const x =
+            insertionLocation.index === 0
+              ? blockLayouts[program.layers[insertionLocation.layerIndex][0]]
+                  .topLeft.x - CLUSTER_MARGIN
+              : insertionLocation.index ===
+                program.layers[insertionLocation.layerIndex].length
+              ? blockLayouts[
+                  program.layers[insertionLocation.layerIndex][
+                    program.layers[insertionLocation.layerIndex].length - 1
+                  ]
+                ].bottomRight.x + CLUSTER_MARGIN
+              : (blockLayouts[
+                  program.layers[insertionLocation.layerIndex][
+                    insertionLocation.index - 1
+                  ]
+                ].bottomRight.x +
+                  blockLayouts[
+                    program.layers[insertionLocation.layerIndex][
+                      insertionLocation.index
+                    ]
+                  ].topLeft.x) /
+                2;
+          return (
+            <motion.line
+              x1={x}
+              x2={x}
+              y1={
+                layerIntervals[insertionLocation.layerIndex].left - LAYER_MARGIN
+              }
+              y2={
+                layerIntervals[insertionLocation.layerIndex].right +
+                LAYER_MARGIN
+              }
+              stroke="black"
+              strokeWidth={4}
+              opacity={0.2}
+            />
+          );
+        } else {
+          let y = 0;
+          if (layerIntervals.length === 0) {
+            y = 0;
+          } else {
+            if (insertionLocation.layerIndex === 0) {
+              y = layerIntervals[0].left - CLUSTER_MARGIN;
+            } else if (insertionLocation.layerIndex < layerIntervals.length) {
+              y =
+                (layerIntervals[insertionLocation.layerIndex - 1].right +
+                  layerIntervals[insertionLocation.layerIndex].left) /
+                2;
+            } else {
+              y =
+                layerIntervals[layerIntervals.length - 1].right +
+                CLUSTER_MARGIN;
+            }
+          }
+          return (
+            <motion.line
+              x1={-100}
+              x2={100}
+              y1={y}
+              y2={y}
+              stroke="black"
+              strokeWidth={4}
+              opacity={0.2}
+            />
+          );
+        }
+      })()}
+
       {clusterRootBlockIds
         .flatMap((clusterRootBlockId) =>
           getDescendantsTopologicallySorted(

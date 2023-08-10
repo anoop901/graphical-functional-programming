@@ -184,6 +184,10 @@ export default function calculateProgramLayout(program: Program): {
   for (const blockId of Object.keys(program.blocks)) {
     blockLayouts[blockId] = {
       topLeft: blockTopLefts[blockId],
+      bottomRight: {
+        x: blockTopLefts[blockId].x + blockSizes[blockId].width,
+        y: blockTopLefts[blockId].y + blockSizes[blockId].height,
+      },
       center: {
         x: blockTopLefts[blockId].x + blockSizes[blockId].width / 2,
         y: blockTopLefts[blockId].y + blockSizes[blockId].height / 2,
