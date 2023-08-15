@@ -11,6 +11,10 @@ export default interface BlockLayout {
     x: number;
     y: number;
   };
+  bottomRight: {
+    x: number;
+    y: number;
+  };
   size: {
     width: number;
     height: number;
