@@ -244,6 +244,7 @@ export default function ProgramEditor() {
               }
               stroke="black"
               strokeWidth={4}
+              strokeLinecap="round"
               opacity={0.2}
             />
           );
@@ -273,6 +274,7 @@ export default function ProgramEditor() {
               y2={y}
               stroke="black"
               strokeWidth={4}
+              strokeLinecap="round"
               opacity={0.2}
             />
           );
