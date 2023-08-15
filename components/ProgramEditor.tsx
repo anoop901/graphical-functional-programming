@@ -8,6 +8,7 @@ import calculateProgramLayout from "@/logic/calculateProgramLayout";
 import programToNestedDependencyGraph from "@/logic/programToNestedDependencyGraph";
 import findRoots from "@/logic/graph/findRoots";
 import { motion } from "framer-motion";
+import { produce } from "immer";
 
 const LAYER_MARGIN = 20;
 const CLUSTER_MARGIN = 30;
@@ -114,6 +115,58 @@ export default function ProgramEditor() {
         setLastMouseDown(mousePosition);
       }}
       onMouseUp={() => {
+        if (currentlyDraggedBlockId != null) {
+          setProgram(
+            produce((draft) => {
+              const insertionLocationAfterRemove = { ...insertionLocation };
+
+              // Remove the dragged block from its current location in layers.
+              for (
+                let layerIndex = 0;
+                layerIndex < draft.layers.length;
+                layerIndex++
+              ) {
+                const layer = draft.layers[layerIndex];
+                const index = layer.indexOf(currentlyDraggedBlockId);
+                if (index >= 0) {
+                  layer.splice(index, 1);
+                  // Adjust the insertion location if the block was removed from
+                  // a location in the same layer before where it will be
+                  // inserted.
+                  if (
+                    insertionLocationAfterRemove.type ===
+                      "betweenClustersWithinLayer" &&
+                    insertionLocationAfterRemove.layerIndex === layerIndex &&
+                    insertionLocationAfterRemove.index > index
+                  ) {
+                    insertionLocationAfterRemove.index--;
+                  }
+                  break;
+                }
+              }
+
+              // Add the dragged block to its new location in layers.
+              draft.blocks[currentlyDraggedBlockId].nested = false;
+              if (insertionLocationAfterRemove.type === "betweenLayers") {
+                draft.layers.splice(
+                  insertionLocationAfterRemove.layerIndex,
+                  0,
+                  [currentlyDraggedBlockId]
+                );
+              } else {
+                draft.layers[insertionLocationAfterRemove.layerIndex].splice(
+                  insertionLocationAfterRemove.index,
+                  0,
+                  currentlyDraggedBlockId
+                );
+              }
+
+              // Remove any empty layers.
+              draft.layers = draft.layers.filter((layer) => layer.length > 0);
+            })
+          );
+        }
+
         setCurrentlyDraggedBlockId(null);
       }}
       onMouseMove={(e) => {
@@ -134,6 +187,27 @@ export default function ProgramEditor() {
       }}
     >
       {(() => {
+        // Don't render a line here if we are not currently dragging a block.
+        if (currentlyDraggedBlockId == null) {
+          return null;
+        }
+        // Don't render a line here if the insertion point is adjacent to the
+        // original location of the dragged block.
+        if (
+          insertionLocation.type === "betweenClustersWithinLayer" &&
+          program.layers[insertionLocation.layerIndex].includes(
+            currentlyDraggedBlockId
+          )
+        ) {
+          const originalIndex = program.layers[
+            insertionLocation.layerIndex
+          ].indexOf(currentlyDraggedBlockId);
+          if (
+            [originalIndex, originalIndex + 1].includes(insertionLocation.index)
+          ) {
+            return null;
+          }
+        }
         if (insertionLocation.type === "betweenClustersWithinLayer") {
           const x =
             insertionLocation.index === 0
