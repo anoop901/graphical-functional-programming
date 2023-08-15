@@ -9,6 +9,7 @@ import programToNestedDependencyGraph from "@/logic/programToNestedDependencyGra
 import findRoots from "@/logic/graph/findRoots";
 import { motion } from "framer-motion";
 import { produce } from "immer";
+import useMouse from "@/hooks/useMouse";
 
 const LAYER_MARGIN = 20;
 const CLUSTER_MARGIN = 30;
@@ -35,19 +36,11 @@ export default function ProgramEditor() {
   const [currentlyDraggedBlockId, setCurrentlyDraggedBlockId] = useState<
     string | null
   >(null);
-  const [mousePosition, setMousePosition] = useState<{
-    x: number;
-    y: number;
-  }>({ x: 0, y: 0 });
-  const [lastMouseDown, setLastMouseDown] = useState<{
-    x: number;
-    y: number;
-  }>({ x: 0, y: 0 });
 
-  const dragOffset = {
-    x: mousePosition.x - lastMouseDown.x,
-    y: mousePosition.y - lastMouseDown.y,
-  };
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  const { mousePosition, onMouseDown, onMouseMove, dragOffset } =
+    useMouse(svgRef);
 
   const blocksNestedInDraggedBlock = useMemo(() => {
     if (currentlyDraggedBlockId == null) {
@@ -106,13 +99,11 @@ export default function ProgramEditor() {
     };
   }, [program.layers, blockLayouts, layerIntervals, mousePosition]);
 
-  const svgRef = useRef<SVGSVGElement>(null);
-
   return (
     <ResizingSvg
       svgRef={svgRef}
-      onMouseDown={() => {
-        setLastMouseDown(mousePosition);
+      onMouseDown={(e) => {
+        onMouseDown(e);
       }}
       onMouseUp={() => {
         if (currentlyDraggedBlockId != null) {
@@ -170,20 +161,7 @@ export default function ProgramEditor() {
         setCurrentlyDraggedBlockId(null);
       }}
       onMouseMove={(e) => {
-        const svg = svgRef.current;
-        if (svg != null) {
-          const clientPoint = new DOMPoint(e.clientX, e.clientY);
-          const screenCTM = svg.getScreenCTM();
-          if (screenCTM != null) {
-            // TODO: Find a way to cache this inverse matrix so we don't have to
-            // recalculate it on every mousemove event.
-            const svgPoint = clientPoint.matrixTransform(screenCTM.inverse());
-            setMousePosition({
-              x: svgPoint.x,
-              y: svgPoint.y,
-            });
-          }
-        }
+        onMouseMove(e);
       }}
     >
       {(() => {
