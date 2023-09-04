@@ -10,9 +10,9 @@ import findRoots from "@/logic/graph/findRoots";
 import { motion } from "framer-motion";
 import { produce } from "immer";
 import useMouse from "@/hooks/useMouse";
-
-const LAYER_MARGIN = 20;
-const CLUSTER_MARGIN = 30;
+import InsertionLocation from "@/model/InsertionLocation";
+import { CLUSTER_MARGIN, LAYER_MARGIN } from "@/logic/constants";
+import calculateInsertionLocation from "@/logic/calculateInsertionLocation";
 
 export default function ProgramEditor() {
   const [program, setProgram] = useState<Program>({ blocks: {}, layers: [] });
@@ -55,49 +55,16 @@ export default function ProgramEditor() {
     }
   }, [currentlyDraggedBlockId, nestedDependencyGraph]);
 
-  type InsertionLocation =
-    | {
-        type: "betweenLayers";
-        layerIndex: number;
-      }
-    | {
-        type: "betweenClustersWithinLayer";
-        layerIndex: number;
-        index: number;
-      };
-
-  const insertionLocation: InsertionLocation = useMemo(() => {
-    const layerIndex = layerIntervals.findIndex(
-      ({ left, right }) =>
-        left - LAYER_MARGIN <= mousePosition.y &&
-        mousePosition.y <= right + LAYER_MARGIN
-    );
-    if (layerIndex < 0) {
-      const layerIndex = layerIntervals.findIndex(
-        ({ left }) => mousePosition.y < left - LAYER_MARGIN
-      );
-      return {
-        type: "betweenLayers",
-        layerIndex: layerIndex < 0 ? program.layers.length : layerIndex,
-      };
-    }
-    const layer = program.layers[layerIndex];
-    const blockIndex = layer.findIndex((blockId) => {
-      return blockLayouts[blockId].center.x > mousePosition.x;
-    });
-    if (blockIndex < 0) {
-      return {
-        type: "betweenClustersWithinLayer",
-        layerIndex: layerIndex,
-        index: layer.length,
-      };
-    }
-    return {
-      type: "betweenClustersWithinLayer",
-      layerIndex: layerIndex,
-      index: blockIndex,
-    };
-  }, [program.layers, blockLayouts, layerIntervals, mousePosition]);
+  const insertionLocation: InsertionLocation = useMemo(
+    () =>
+      calculateInsertionLocation(
+        layerIntervals,
+        blockLayouts,
+        program.layers,
+        mousePosition
+      ),
+    [layerIntervals, blockLayouts, program.layers, mousePosition]
+  );
 
   return (
     <ResizingSvg
