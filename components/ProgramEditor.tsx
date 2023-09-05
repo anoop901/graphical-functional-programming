@@ -15,10 +15,16 @@ import { CLUSTER_MARGIN, LAYER_MARGIN } from "@/logic/constants";
 import calculateInsertionLocation from "@/logic/calculateInsertionLocation";
 
 export default function ProgramEditor() {
+  const svgRef = useRef<SVGSVGElement>(null);
+
   const [program, setProgram] = useState<Program>({ blocks: {}, layers: [] });
   useEffect(() => {
+    // program must be initialized in useEffect instead of useState because
+    // makeInitialProgram() depends on the window object, which is not available
+    // during server-side rendering.
     setProgram(makeInitialProgram());
   }, []);
+
   const { blockLayouts, lineConnectionLayouts, layerIntervals } = useMemo(
     () => calculateProgramLayout(program),
     [program]
@@ -28,6 +34,7 @@ export default function ProgramEditor() {
     () => programToNestedDependencyGraph(program),
     [program]
   );
+
   const clusterRootBlockIds = useMemo(
     () => findRoots(nestedDependencyGraph),
     [nestedDependencyGraph]
@@ -36,11 +43,6 @@ export default function ProgramEditor() {
   const [currentlyDraggedBlockId, setCurrentlyDraggedBlockId] = useState<
     string | null
   >(null);
-
-  const svgRef = useRef<SVGSVGElement>(null);
-
-  const { mousePosition, onMouseDown, onMouseMove, dragOffset } =
-    useMouse(svgRef);
 
   const blocksNestedInDraggedBlock = useMemo(() => {
     if (currentlyDraggedBlockId == null) {
@@ -54,6 +56,9 @@ export default function ProgramEditor() {
       );
     }
   }, [currentlyDraggedBlockId, nestedDependencyGraph]);
+
+  const { mousePosition, dragOffset, onMouseDown, onMouseMove } =
+    useMouse(svgRef);
 
   const insertionLocation: InsertionLocation = useMemo(
     () =>
