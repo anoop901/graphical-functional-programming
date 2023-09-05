@@ -13,6 +13,7 @@ import useMouse from "@/hooks/useMouse";
 import InsertionLocation from "@/model/InsertionLocation";
 import { CLUSTER_MARGIN, LAYER_MARGIN } from "@/logic/constants";
 import calculateInsertionLocation from "@/logic/calculateInsertionLocation";
+import moveBlockToNewLocationAsClusterRoot from "@/logic/moveBlockToNewLocationAsClusterRoot";
 
 export default function ProgramEditor() {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -81,51 +82,11 @@ export default function ProgramEditor() {
         if (currentlyDraggedBlockId != null) {
           setProgram(
             produce((draft) => {
-              const insertionLocationAfterRemove = { ...insertionLocation };
-
-              // Remove the dragged block from its current location in layers.
-              for (
-                let layerIndex = 0;
-                layerIndex < draft.layers.length;
-                layerIndex++
-              ) {
-                const layer = draft.layers[layerIndex];
-                const index = layer.indexOf(currentlyDraggedBlockId);
-                if (index >= 0) {
-                  layer.splice(index, 1);
-                  // Adjust the insertion location if the block was removed from
-                  // a location in the same layer before where it will be
-                  // inserted.
-                  if (
-                    insertionLocationAfterRemove.type ===
-                      "betweenClustersWithinLayer" &&
-                    insertionLocationAfterRemove.layerIndex === layerIndex &&
-                    insertionLocationAfterRemove.index > index
-                  ) {
-                    insertionLocationAfterRemove.index--;
-                  }
-                  break;
-                }
-              }
-
-              // Add the dragged block to its new location in layers.
-              draft.blocks[currentlyDraggedBlockId].nested = false;
-              if (insertionLocationAfterRemove.type === "betweenLayers") {
-                draft.layers.splice(
-                  insertionLocationAfterRemove.layerIndex,
-                  0,
-                  [currentlyDraggedBlockId]
-                );
-              } else {
-                draft.layers[insertionLocationAfterRemove.layerIndex].splice(
-                  insertionLocationAfterRemove.index,
-                  0,
-                  currentlyDraggedBlockId
-                );
-              }
-
-              // Remove any empty layers.
-              draft.layers = draft.layers.filter((layer) => layer.length > 0);
+              moveBlockToNewLocationAsClusterRoot(
+                draft,
+                currentlyDraggedBlockId,
+                insertionLocation
+              );
             })
           );
         }
