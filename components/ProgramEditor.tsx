@@ -11,9 +11,9 @@ import { motion } from "framer-motion";
 import { produce } from "immer";
 import useMouse from "@/hooks/useMouse";
 import InsertionLocation from "@/model/InsertionLocation";
-import { CLUSTER_MARGIN, LAYER_MARGIN } from "@/logic/constants";
 import calculateInsertionLocation from "@/logic/calculateInsertionLocation";
 import moveBlockToNewLocationAsClusterRoot from "@/logic/moveBlockToNewLocationAsClusterRoot";
+import InsertionLocationPreview from "./InsertionLocationPreview";
 
 export default function ProgramEditor() {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -72,6 +72,31 @@ export default function ProgramEditor() {
     [layerIntervals, blockLayouts, program.layers, mousePosition]
   );
 
+  const renderInsertionLocationPreview = useMemo(() => {
+    // Don't render insertion location if we are not currently dragging a block.
+    if (currentlyDraggedBlockId == null) {
+      return false;
+    }
+    // Don't render insertion location if it is adjacent to the original
+    // location of the dragged block.
+    if (
+      insertionLocation.type === "betweenClustersWithinLayer" &&
+      program.layers[insertionLocation.layerIndex].includes(
+        currentlyDraggedBlockId
+      )
+    ) {
+      const originalIndex = program.layers[
+        insertionLocation.layerIndex
+      ].indexOf(currentlyDraggedBlockId);
+      if (
+        [originalIndex, originalIndex + 1].includes(insertionLocation.index)
+      ) {
+        return false;
+      }
+    }
+    return true;
+  }, [currentlyDraggedBlockId, insertionLocation, program.layers]);
+
   return (
     <ResizingSvg
       svgRef={svgRef}
@@ -97,101 +122,16 @@ export default function ProgramEditor() {
         onMouseMove(e);
       }}
     >
-      {(() => {
-        // Don't render a line here if we are not currently dragging a block.
-        if (currentlyDraggedBlockId == null) {
-          return null;
-        }
-        // Don't render a line here if the insertion point is adjacent to the
-        // original location of the dragged block.
-        if (
-          insertionLocation.type === "betweenClustersWithinLayer" &&
-          program.layers[insertionLocation.layerIndex].includes(
-            currentlyDraggedBlockId
-          )
-        ) {
-          const originalIndex = program.layers[
-            insertionLocation.layerIndex
-          ].indexOf(currentlyDraggedBlockId);
-          if (
-            [originalIndex, originalIndex + 1].includes(insertionLocation.index)
-          ) {
-            return null;
-          }
-        }
-        if (insertionLocation.type === "betweenClustersWithinLayer") {
-          const x =
-            insertionLocation.index === 0
-              ? blockLayouts[program.layers[insertionLocation.layerIndex][0]]
-                  .topLeft.x - CLUSTER_MARGIN
-              : insertionLocation.index ===
-                program.layers[insertionLocation.layerIndex].length
-              ? blockLayouts[
-                  program.layers[insertionLocation.layerIndex][
-                    program.layers[insertionLocation.layerIndex].length - 1
-                  ]
-                ].bottomRight.x + CLUSTER_MARGIN
-              : (blockLayouts[
-                  program.layers[insertionLocation.layerIndex][
-                    insertionLocation.index - 1
-                  ]
-                ].bottomRight.x +
-                  blockLayouts[
-                    program.layers[insertionLocation.layerIndex][
-                      insertionLocation.index
-                    ]
-                  ].topLeft.x) /
-                2;
-          return (
-            <motion.line
-              x1={x}
-              x2={x}
-              y1={
-                layerIntervals[insertionLocation.layerIndex].left - LAYER_MARGIN
-              }
-              y2={
-                layerIntervals[insertionLocation.layerIndex].right +
-                LAYER_MARGIN
-              }
-              stroke="black"
-              strokeWidth={4}
-              strokeLinecap="round"
-              opacity={0.2}
-            />
-          );
-        } else {
-          let y = 0;
-          if (layerIntervals.length === 0) {
-            y = 0;
-          } else {
-            if (insertionLocation.layerIndex === 0) {
-              y = layerIntervals[0].left - CLUSTER_MARGIN;
-            } else if (insertionLocation.layerIndex < layerIntervals.length) {
-              y =
-                (layerIntervals[insertionLocation.layerIndex - 1].right +
-                  layerIntervals[insertionLocation.layerIndex].left) /
-                2;
-            } else {
-              y =
-                layerIntervals[layerIntervals.length - 1].right +
-                CLUSTER_MARGIN;
-            }
-          }
-          return (
-            <motion.line
-              x1={-100}
-              x2={100}
-              y1={y}
-              y2={y}
-              stroke="black"
-              strokeWidth={4}
-              strokeLinecap="round"
-              opacity={0.2}
-            />
-          );
-        }
-      })()}
+      {renderInsertionLocationPreview && (
+        <InsertionLocationPreview
+          insertionLocation={insertionLocation}
+          program={program}
+          blockLayouts={blockLayouts}
+          layerIntervals={layerIntervals}
+        />
+      )}
 
+      {/* TODO: factor out BlockInEditor and/or BlocksInEditor components */}
       {clusterRootBlockIds
         .flatMap((clusterRootBlockId) =>
           getDescendantsTopologicallySorted(
@@ -244,6 +184,8 @@ export default function ProgramEditor() {
             </motion.g>
           );
         })}
+
+      {/* Factor out LineConnectionInEditor and/or LineConnectionsInEditor components */}
       {lineConnectionLayouts.map(
         ({ dependencyBlockId, dependentBlockId, endpoint }, index) => {
           const isDraggingDependencyBlock =
