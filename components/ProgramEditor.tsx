@@ -14,6 +14,7 @@ import InsertionLocation from "@/model/InsertionLocation";
 import calculateInsertionLocation from "@/logic/calculateInsertionLocation";
 import moveBlockToNewLocationAsClusterRoot from "@/logic/moveBlockToNewLocationAsClusterRoot";
 import InsertionLocationPreview from "./InsertionLocationPreview";
+import BlockInEditor from "./BlockInEditor";
 
 export default function ProgramEditor() {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -47,7 +48,7 @@ export default function ProgramEditor() {
 
   const blocksNestedInDraggedBlock = useMemo(() => {
     if (currentlyDraggedBlockId == null) {
-      return new Set();
+      return new Set<string>();
     } else {
       return new Set(
         getDescendantsTopologicallySorted(
@@ -115,7 +116,6 @@ export default function ProgramEditor() {
             })
           );
         }
-
         setCurrentlyDraggedBlockId(null);
       }}
       onMouseMove={(e) => {
@@ -131,7 +131,6 @@ export default function ProgramEditor() {
         />
       )}
 
-      {/* TODO: factor out BlockInEditor and/or BlocksInEditor components */}
       {clusterRootBlockIds
         .flatMap((clusterRootBlockId) =>
           getDescendantsTopologicallySorted(
@@ -140,50 +139,19 @@ export default function ProgramEditor() {
             true
           )
         )
-        .map((blockId) => {
-          const block = program.blocks[blockId];
-          const { topLeft, size } = blockLayouts[blockId];
-          const isDraggingThisBlock = blocksNestedInDraggedBlock.has(blockId);
-          return (
-            <motion.g
-              key={blockId}
-              animate={{
-                x: topLeft.x + (isDraggingThisBlock ? dragOffset.x : 0),
-                y: topLeft.y + (isDraggingThisBlock ? dragOffset.y : 0),
-                opacity: isDraggingThisBlock ? 0.5 : 1,
-              }}
-              transition={{
-                ...(isDraggingThisBlock
-                  ? { x: { duration: 0 }, y: { duration: 0 } }
-                  : { x: { type: "tween" }, y: { type: "tween" } }),
-              }}
-              initial={false}
-              onMouseDown={() => {
-                setCurrentlyDraggedBlockId(blockId);
-              }}
-            >
-              <rect
-                width={size.width}
-                height={size.height}
-                rx={10}
-                fill={colors.green[100]}
-                stroke={colors.green[500]}
-                strokeWidth={2}
-              />
-              <text
-                x={size.width / 2}
-                y={size.height / 2}
-                fill={colors.green[700]}
-                fontWeight="bold"
-                textAnchor="middle"
-                alignmentBaseline="middle"
-              >
-                {block.type === "IntegerLiteralBlock" ? block.value : null}
-                {block.type === "ReferenceBlock" ? block.name : null}
-              </text>
-            </motion.g>
-          );
-        })}
+        .map((blockId) => (
+          <BlockInEditor
+            key={blockId}
+            block={program.blocks[blockId]}
+            blockLayout={blockLayouts[blockId]}
+            dragOffset={
+              blocksNestedInDraggedBlock.has(blockId) ? dragOffset : null
+            }
+            onMouseDown={() => {
+              setCurrentlyDraggedBlockId(blockId);
+            }}
+          />
+        ))}
 
       {/* Factor out LineConnectionInEditor and/or LineConnectionsInEditor components */}
       {lineConnectionLayouts.map(
