@@ -15,6 +15,7 @@ import calculateInsertionLocation from "@/logic/calculateInsertionLocation";
 import moveBlockToNewLocationAsClusterRoot from "@/logic/moveBlockToNewLocationAsClusterRoot";
 import InsertionLocationPreview from "./InsertionLocationPreview";
 import BlockInEditor from "./BlockInEditor";
+import LineConnectionInEditor from "./LineConnectionInEditor";
 
 export default function ProgramEditor() {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -155,71 +156,23 @@ export default function ProgramEditor() {
 
       {/* Factor out LineConnectionInEditor and/or LineConnectionsInEditor components */}
       {lineConnectionLayouts.map(
-        ({ dependencyBlockId, dependentBlockId, endpoint }, index) => {
-          const isDraggingDependencyBlock =
-            blocksNestedInDraggedBlock.has(dependencyBlockId);
-          const isDraggingDependentBlock =
-            blocksNestedInDraggedBlock.has(dependentBlockId);
-
-          const startPoint = blockLayouts[dependencyBlockId].output;
-
-          // Since the user might be dragging one of the blocks connected by
-          // this line, we may need to adjust the line's start and end points.
-          // We do this by adding the drag offset to the start and end points
-          // if the corresponding block is being dragged.
-          const draggedStartPoint = {
-            x: startPoint.x + (isDraggingDependencyBlock ? dragOffset.x : 0),
-            y: startPoint.y + (isDraggingDependencyBlock ? dragOffset.y : 0),
-          };
-          const draggedEndPoint = {
-            x: endpoint.x + (isDraggingDependentBlock ? dragOffset.x : 0),
-            y: endpoint.y + (isDraggingDependentBlock ? dragOffset.y : 0),
-          };
-
-          return (
-            <motion.g
-              key={index}
-              animate={{
-                opacity:
-                  isDraggingDependencyBlock || isDraggingDependentBlock
-                    ? 0.25
-                    : 1,
-              }}
-            >
-              <motion.line
-                animate={{
-                  x1: draggedStartPoint.x,
-                  y1: draggedStartPoint.y,
-                  x2: draggedEndPoint.x,
-                  y2: draggedEndPoint.y,
-                }}
-                transition={{
-                  ...(isDraggingDependencyBlock
-                    ? { x1: { duration: 0 }, y1: { duration: 0 } }
-                    : { x1: "easeOut", y1: "easeOut" }),
-                  ...(isDraggingDependentBlock
-                    ? { x2: { duration: 0 }, y2: { duration: 0 } }
-                    : { x2: "easeOut", y2: "easeOut" }),
-                }}
-                stroke={colors.black}
-                strokeWidth={2}
-              />
-              <motion.circle
-                animate={{
-                  cx: draggedEndPoint.x,
-                  cy: draggedEndPoint.y,
-                }}
-                transition={{
-                  ...(isDraggingDependentBlock
-                    ? { cx: { duration: 0 }, cy: { duration: 0 } }
-                    : { cx: "easeOut", cy: "easeOut" }),
-                }}
-                r={5}
-                fill={colors.black}
-              />
-            </motion.g>
-          );
-        }
+        ({ dependencyBlockId, dependentBlockId, endpoint }, index) => (
+          <LineConnectionInEditor
+            key={index}
+            startPoint={blockLayouts[dependencyBlockId].output}
+            endPoint={endpoint}
+            dependencyBlockDragOffset={
+              blocksNestedInDraggedBlock.has(dependencyBlockId)
+                ? dragOffset
+                : null
+            }
+            dependentBlockDragOffset={
+              blocksNestedInDraggedBlock.has(dependentBlockId)
+                ? dragOffset
+                : null
+            }
+          />
+        )
       )}
     </ResizingSvg>
   );
