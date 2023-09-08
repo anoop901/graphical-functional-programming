@@ -1,5 +1,4 @@
 "use client";
-import colors from "tailwindcss/colors";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ResizingSvg from "./ResizingSvg";
 import { Program, makeInitialProgram } from "@/model/Program";
@@ -7,7 +6,6 @@ import getDescendantsTopologicallySorted from "@/logic/graph/getDescendantsTopol
 import calculateProgramLayout from "@/logic/calculateProgramLayout";
 import programToNestedDependencyGraph from "@/logic/programToNestedDependencyGraph";
 import findRoots from "@/logic/graph/findRoots";
-import { motion } from "framer-motion";
 import { produce } from "immer";
 import useMouse from "@/hooks/useMouse";
 import InsertionLocation from "@/model/InsertionLocation";
