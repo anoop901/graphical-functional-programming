@@ -4,13 +4,13 @@ import BlockLayout from "@/model/BlockLayout";
 import InsertionLocation from "@/model/InsertionLocation";
 import { Program } from "@/model/Program";
 import { motion } from "framer-motion";
+import colors from "tailwindcss/colors";
 
 const BETWEEN_LAYERS_INSERTION_LOCATION_LINE_LENGTH = 200;
 const LINE_STYLE = {
-  stroke: "#36c",
+  stroke: colors.blue[300],
   strokeWidth: 6,
   strokeLinecap: "round" as const,
-  opacity: 0.3,
 };
 
 export interface InsertionLocationPreviewProps {
