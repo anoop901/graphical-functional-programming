@@ -4,15 +4,17 @@ import { motion } from "framer-motion";
 import colors from "tailwindcss/colors";
 
 interface BlockInEditorProps {
-  // The block to render.
+  /** The block to render. */
   block: Block;
-  // The layout of the block.
+  /** The layout of the block. */
   blockLayout: BlockLayout;
-  // If the block (or a block in which it is nested) is being dragged, the
-  // offset to render the block away from its position in the layout. Otherwise,
-  // null.
+  /**
+   * If the block (or a block in which it is nested) is being dragged, the
+   * offset to render the block away from its position in the layout.
+   * Otherwise, null.
+   */
   dragOffset: { x: number; y: number } | null;
-  // Callback invoked when the user presses the mouse down on the block.
+  /** Callback invoked when the user presses the mouse down on the block. */
   onMouseDown?: (e: React.MouseEvent<SVGGElement, MouseEvent>) => void;
 }
 
