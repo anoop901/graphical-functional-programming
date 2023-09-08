@@ -154,7 +154,6 @@ export default function ProgramEditor() {
           />
         ))}
 
-      {/* Factor out LineConnectionInEditor and/or LineConnectionsInEditor components */}
       {lineConnectionLayouts.map(
         ({ dependencyBlockId, dependentBlockId, endpoint }, index) => (
           <LineConnectionInEditor
